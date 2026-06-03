@@ -1,0 +1,29 @@
+{
+  "name": "shopify-x-integration",
+  "version": "1.0.0",
+  "description": "Shopify + X (Twitter) integration built with Grok. Real-time product/order webhooks, auto-tweeting, dashboards, and daily summaries.",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "shopify",
+    "twitter",
+    "x",
+    "integration",
+    "webhooks",
+    "ecommerce"
+  ],
+  "author": "Built with Grok",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.17.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "twitter-api-v2": "^1.29.0"
+  }
+}

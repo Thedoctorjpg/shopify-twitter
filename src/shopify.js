@@ -1,0 +1,153 @@
+/**
+ * shopify.js
+ * Shopify Admin API client (2025-04 API version as example - update as needed)
+ * Includes products, orders, and helpers for webhooks.
+ */
+
+import axios from 'axios';
+import { logger } from './utils.js';
+
+const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+const SHOPIFY_SHOP_DOMAIN = process.env.SHOPIFY_SHOP_DOMAIN;
+const API_VERSION = '2025-04'; // Update to current stable when needed (e.g. 2024-10)
+
+if (!SHOPIFY_ACCESS_TOKEN || !SHOPIFY_SHOP_DOMAIN) {
+  logger.warn('Shopify credentials missing in environment. API calls will fail.');
+}
+
+const shopify = axios.create({
+  baseURL: `https://${SHOPIFY_SHOP_DOMAIN}/admin/api/${API_VERSION}`,
+  headers: {
+    'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  timeout: 30000
+});
+
+// Add response interceptor for logging + error normalization
+shopify.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const data = error.response?.data;
+    logger.error(`Shopify API error ${status || ''}`, null, {
+      url: error.config?.url,
+      method: error.config?.method,
+      shopifyErrors: data?.errors || data
+    });
+    return Promise.reject(error);
+  }
+);
+
+export async function getProducts(params = {}) {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const response = await shopify.get(`/products.json${query ? `?${query}` : ''}`);
+    return response.data.products || [];
+  } catch (err) {
+    logger.error('Failed to fetch products', err);
+    throw err;
+  }
+}
+
+export async function getProductById(productId) {
+  try {
+    const response = await shopify.get(`/products/${productId}.json`);
+    return response.data.product;
+  } catch (err) {
+    logger.error(`Failed to fetch product ${productId}`, err);
+    throw err;
+  }
+}
+
+export async function getOrders(params = { status: 'any', limit: 50 }) {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const response = await shopify.get(`/orders.json?${query}`);
+    return response.data.orders || [];
+  } catch (err) {
+    logger.error('Failed to fetch orders', err);
+    throw err;
+  }
+}
+
+export async function getOrderById(orderId) {
+  try {
+    const response = await shopify.get(`/orders/${orderId}.json`);
+    return response.data.order;
+  } catch (err) {
+    logger.error(`Failed to fetch order ${orderId}`, err);
+    throw err;
+  }
+}
+
+/**
+ * Register a webhook with Shopify.
+ * @param {string} topic e.g. 'products/create', 'orders/create'
+ * @param {string} address full URL to your /webhooks endpoint
+ */
+export async function registerWebhook(topic, address) {
+  try {
+    const payload = {
+      webhook: {
+        topic,
+        address,
+        format: 'json'
+      }
+    };
+    const response = await shopify.post('/webhooks.json', payload);
+    logger.info('Webhook registered', { topic, address, id: response.data.webhook?.id });
+    return response.data.webhook;
+  } catch (err) {
+    // Common case: webhook already exists for this address/topic
+    if (err.response?.status === 422) {
+      logger.warn('Webhook may already exist', { topic, address });
+    }
+    logger.error('Failed to register webhook', err);
+    throw err;
+  }
+}
+
+export async function listWebhooks() {
+  try {
+    const response = await shopify.get('/webhooks.json');
+    return response.data.webhooks || [];
+  } catch (err) {
+    logger.error('Failed to list webhooks', err);
+    throw err;
+  }
+}
+
+export async function deleteWebhook(webhookId) {
+  try {
+    await shopify.delete(`/webhooks/${webhookId}.json`);
+    logger.info('Webhook deleted', { id: webhookId });
+    return true;
+  } catch (err) {
+    logger.error('Failed to delete webhook', err);
+    throw err;
+  }
+}
+
+/**
+ * Helper: Get recent orders for dashboard / summaries
+ */
+export async function getRecentOrders(limit = 10) {
+  return getOrders({ status: 'any', limit, order: 'created_at desc' });
+}
+
+/**
+ * Get shop info (useful for health + display)
+ */
+export async function getShopInfo() {
+  try {
+    const response = await shopify.get('/shop.json');
+    return response.data.shop;
+  } catch (err) {
+    logger.error('Failed to fetch shop info', err);
+    throw err;
+  }
+}
+
+export default shopify;
