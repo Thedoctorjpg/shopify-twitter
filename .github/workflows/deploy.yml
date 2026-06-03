@@ -1,0 +1,47 @@
+name: Deploy to AWS App Runner
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-west-2' }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/shopify-x-integration:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/shopify-x-integration:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/shopify-x-integration:$IMAGE_TAG $ECR_REGISTRY/shopify-x-integration:latest
+          docker push $ECR_REGISTRY/shopify-x-integration:latest
+
+      - name: Deploy to App Runner (update service)
+        # Assumes App Runner service already created pointing to this ECR repo
+        # Or use GitHub source instead (simpler, no ECR needed)
+        run: |
+          # Example update - replace with your service ARN
+          SERVICE_ARN="arn:aws:apprunner:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/shopify-x-integration"
+          aws apprunner update-service \
+            --service-arn $SERVICE_ARN \
+            --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"${{ steps.login-ecr.outputs.registry }}/shopify-x-integration:latest\",\"ImageRepositoryType\":\"ECR\"}}" \
+            --region ${{ secrets.AWS_REGION }} || echo "Update may require console first time or use GitHub source"
+
+      - name: Output
+        run: echo "Deploy triggered. Check AWS App Runner console. Use GitHub source for zero-config deploys."

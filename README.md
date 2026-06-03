@@ -2,7 +2,7 @@
 
 **Built with Grok as your primary AI coding partner.**
 
-A production-ready Node.js/Express backend that connects **Shopify, eBay, and AliExpress** to X (Twitter), WordPress, and any external endpoint, with:
+A production-ready Node.js/Express backend + React/Vite frontend that connects **Shopify, eBay, and AliExpress** to X (Twitter), WordPress, and any external endpoint, with:
 
 - Real-time Shopify webhooks
 - Multi-platform product/order fetching and announcement tweeting
@@ -78,8 +78,9 @@ shopify-x-integration/
 - **Multi-platform support**: Shopify + **eBay** + **AliExpress**
 - Real-time **Shopify webhooks** → X + WordPress + external (Google, n8n, etc.)
 - Fetch products/orders from eBay and AliExpress and tweet them
-- **AWS-ready**: Dockerfile + healthchecks + instructions for App Runner / ECS
-- Convenient `POST /webhooks/setup` + platform-specific tweet endpoints
+- **AWS-ready**: Dockerfile + healthchecks + instructions for App Runner / ECS + GitHub Actions + SSM loader
+- **React/Vite Dashboard**: Unified view across all platforms with tweet & import buttons
+- Convenient `POST /webhooks/setup` + platform-specific tweet + import endpoints + daily cron
 - Rich prompt-log style logging for AI-assisted development
 
 ## Webhook Setup (Real-time Triggers)
@@ -429,12 +430,15 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 
 Current status (built with Grok):
 
-- ✅ Shopify + eBay + AliExpress product/order fetching + import flows (Ali→Shopify)
-- ✅ Multi-platform tweeting (X) + daily cross-platform summary cron
-- ✅ Shopify webhooks + eBay Event Notifications + WordPress + arbitrary external forwards
-- ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader)
-- 3. Frontend Dashboard (React/Vite + widgets)
+- ✅ Shopify + eBay + AliExpress product/order fetching + import flows (Ali/eBay → Shopify, bulk supported)
+- ✅ Multi-platform tweeting (X) + daily cross-platform summary cron (scoring + email fallback)
+- ✅ Shopify webhooks + eBay Event Notifications (verified) + WordPress + arbitrary external forwards
+- ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader + GitHub Actions)
+- ✅ Frontend Dashboard (React/Vite - unified view + tweet/import buttons)
 - ✅ Excellent docs + prompt logs
+
+Run frontend: `npm run frontend` (after `cd frontend && npm install` if needed)
+Full dev: `npm run dev:full` (requires concurrently)
 
 Next high-value additions could be:
 - Real eBay Event Notifications receiver

@@ -7,7 +7,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "dev:full": "concurrently \"npm run dev\" \"cd frontend && npm run dev\"",
+    "test": "echo \"No tests yet\" && exit 0",
+    "frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
   },
   "keywords": [
     "shopify",
@@ -30,6 +33,10 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.10",
     "twitter-api-v2": "^1.29.0"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
   }
 }

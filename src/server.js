@@ -283,29 +283,66 @@ app.post('/tweet-aliexpress-product', async (req, res) => {
   }
 });
 
-// ---------- Product Import Flows (e.g. AliExpress -> Shopify draft) ----------
-app.post('/import/aliexpress-to-shopify', async (req, res) => {
+// ---------- Product Import Flows (AliExpress/eBay -> Shopify draft) + Bulk support ----------
+app.post('/import/to-shopify', async (req, res) => {
   try {
-    const { itemId, keywords, item } = req.body;
-    let aliItem = item;
+    const { platform = 'aliexpress', itemId, keywords, item, items } = req.body;
+    let sourceItems = items || [];
 
-    if (!aliItem && itemId) {
-      aliItem = await getAliExpressProduct(itemId);
-    } else if (!aliItem && keywords) {
-      const results = await searchAliExpressProducts(keywords, { limit: 1 });
-      aliItem = results[0];
+    if (items && Array.isArray(items)) {
+      // bulk
+    } else {
+      let srcItem = item;
+      if (!srcItem && itemId) {
+        if (platform === 'ebay') {
+          const results = await getEbayProducts({ limit: 1, q: itemId });
+          srcItem = results[0];
+        } else {
+          srcItem = await getAliExpressProduct(itemId);
+        }
+      } else if (!srcItem && keywords) {
+        if (platform === 'ebay') {
+          const results = await getEbayProducts({ limit: 1, q: keywords });
+          srcItem = results[0];
+        } else {
+          const results = await searchAliExpressProducts(keywords, { limit: 1 });
+          srcItem = results[0];
+        }
+      }
+      if (srcItem) sourceItems = [srcItem];
     }
-    if (!aliItem) return res.status(400).json({ error: 'item, itemId or keywords required' });
 
-    const normalized = formatAliExpressProduct(aliItem);
-    const shopifyProduct = await importToShopifyFromExternal(normalized, 'AliExpress');
+    if (sourceItems.length === 0) return res.status(400).json({ error: 'item, itemId, keywords or items array required' });
 
-    logger.promptLog('IMPORTED ALIEXPRESS TO SHOPIFY', { ali: normalized, shopifyId: shopifyProduct.id, status: shopifyProduct.status });
-    res.json({ success: true, shopifyProduct });
+    const results = [];
+    for (const src of sourceItems) {
+      let normalized;
+      let srcPlatform = platform;
+      if (platform === 'ebay' || src.itemWebUrl || src.itemId) {
+        normalized = formatEbayProductForTweet(src);
+        srcPlatform = 'eBay';
+      } else {
+        normalized = formatAliExpressProduct(src);
+        srcPlatform = 'AliExpress';
+      }
+      const shopifyProduct = await importToShopifyFromExternal(normalized, srcPlatform);
+      results.push({ normalized, shopifyProduct });
+    }
+
+    logger.promptLog('BULK IMPORT TO SHOPIFY', { count: results.length, platform });
+    res.json({ success: true, count: results.length, results });
   } catch (err) {
-    logger.error('import aliexpress to shopify failed', err);
+    logger.error('import to shopify failed', err);
     res.status(500).json({ error: 'Import failed', details: err.message });
   }
+});
+
+// Legacy alias for backward compat
+app.post('/import/aliexpress-to-shopify', (req, res) => {
+  req.body.platform = 'aliexpress';
+  // delegate
+  // for simplicity call the handler logic, but since route, redirect conceptually
+  res.redirect(307, '/import/to-shopify'); // or just note
 });
 
 // ---------- WEBHOOKS (Shopify → us) ----------

@@ -1,0 +1,153 @@
+/* Clean Dashboard CSS */
+.dashboard {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f8f9fa;
+  color: #111;
+  min-height: 100vh;
+}
+
+header {
+  background: white;
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+header h1 { margin: 0; font-size: 28px; }
+header p { margin: 4px 0 0; color: #666; font-size: 14px; }
+
+.header-actions { display: flex; gap: 10px; }
+
+button {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+button:hover { background: #f0f0f0; border-color: #ccc; }
+button.primary { background: #0066ff; color: white; border-color: #0066ff; }
+button.primary:hover { background: #0052cc; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 1000;
+  font-size: 14px;
+}
+
+.platforms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.platform-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.section-header h2 { margin: 0; font-size: 18px; flex: 1; }
+.section-header input {
+  padding: 6px 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 13px;
+  min-width: 140px;
+}
+
+.products-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.product-card {
+  display: flex;
+  gap: 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.product-img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 1px solid #eee;
+}
+
+.product-info { flex: 1; min-width: 0; }
+.product-platform {
+  font-size: 11px;
+  font-weight: 600;
+  color: #0066ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.product-info h4 {
+  margin: 4px 0 6px;
+  font-size: 14px;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.product-price { font-weight: 700; color: #111; font-size: 15px; }
+
+.product-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.product-actions button { font-size: 12px; padding: 4px 8px; }
+.import-btn { background: #f0f7ff; border-color: #0066ff33; }
+.view-link {
+  font-size: 12px;
+  padding: 4px 8px;
+  text-decoration: none;
+  color: #666;
+  display: inline-flex;
+  align-items: center;
+}
+
+footer {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  padding: 16px;
+}
+footer button { font-size: 13px; padding: 4px 10px; }

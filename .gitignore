@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+frontend/node_modules/
 
 # Environment
 .env
@@ -22,4 +23,5 @@ Thumbs.db
 # Build / misc
 dist/
 build/
+frontend/dist/
 *.tsbuildinfo
