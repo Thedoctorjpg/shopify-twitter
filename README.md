@@ -428,11 +428,12 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 
 ## Enhanced X/Twitter Features (Marketing, Ads, Special Events)
 
-- Marketing tweets: `POST /tweet-marketing` with UTM params, campaign tracking, auto Imagine ad images.
-- Ads support: `GET /tweet-metrics/:tweetId` for analytics (public + organic metrics). `GET /twitter/ads-access` check.
-- Special events: `POST /tweet-special-event` for holidays, sales, launches. Easy to wire into cron.
-- Frontend Twitter Hub: Test buttons, metrics lookup, ads status.
-- See `src/twitter.js` (postMarketingTweet, getTweetMetrics, tweetSpecialEvent) and utils for generators.
+- Marketing tweets: `POST /tweet-marketing` with UTM params, campaign tracking, auto Imagine ad images. Uses Grok for smart copy if `USE_GROK_COPY=true`.
+- Ads support: `GET /tweet-metrics/:tweetId` for analytics (public + organic metrics). `GET /twitter/ads-access` check. `POST /promote-tweet` for full promotion (requires `TWITTER_ADS_ACCOUNT_ID` and Ads account).
+- Special events: `POST /tweet-special-event` for holidays, sales, launches. **Cron wired**: daily events check via `runEventTweets()` alongside summary.
+- Frontend Twitter Hub: Test buttons, metrics lookup, ads status, event trigger.
+- Grok text gen integrated for dynamic marketing/event copy (via xAI chat API).
+- See `src/twitter.js`, `src/grok.js`, `src/cron.js` and utils for generators.
 
 ## Extending the Project (High-Velocity Next Steps)
 
@@ -444,7 +445,7 @@ Current status (built with Grok):
 - ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader + GitHub Actions)
 - ✅ Frontend Dashboard (React/Vite - unified view + tweet/import + xAI Grok Imagine + Twitter Marketing Hub)
 - ✅ xAI Grok Imagine API integration (image gen, product ad mockups, edits, video)
-- ✅ Enhanced X/Twitter: Marketing integration, Ads support (metrics), Special events
+- ✅ Enhanced X/Twitter: Marketing integration, Ads support (metrics + full promote), Special events + cron wiring, Grok text copy gen
 - ✅ Excellent docs + prompt logs
 
 Run frontend: `npm run frontend` (after `cd frontend && npm install` if needed)

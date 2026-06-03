@@ -380,6 +380,11 @@ function App() {
           <div style={{marginTop: '10px'}}>
             <button onClick={() => postSpecialEvent('Black Friday', {title: 'Huge Savings', price: '50'}, 'Shopify')}>Simulate Black Friday Tweet</button>
             <button onClick={() => postMarketingTweet({title: 'New Collection Drop', price: '99'}, 'eBay')}>Test Marketing Tweet</button>
+            <button onClick={async () => {
+              const res = await fetch(`${API}/cron/trigger-events`, {method: 'POST'});
+              const data = await res.json();
+              showMessage(`Events triggered: ${data.result?.eventsRun || 0}`);
+            }}>Trigger Event Tweets Now</button>
           </div>
         </div>
       </section>

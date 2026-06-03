@@ -13,7 +13,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { resolve } from 'path';
 import { getProducts, getOrders, getProductById, getOrderById, registerWebhook, listWebhooks, createProduct, importToShopifyFromExternal } from './shopify.js';
-import { postToTwitter, tweetNewProduct, tweetNewOrder, postMarketingTweet, getTweetMetrics, tweetSpecialEvent, checkAdsAccess } from './twitter.js';
+import { postToTwitter, tweetNewProduct, tweetNewOrder, postMarketingTweet, getTweetMetrics, tweetSpecialEvent, checkAdsAccess, promoteTweet } from './twitter.js';
 import { 
   logger, 
   verifyShopifyWebhook, 
@@ -41,7 +41,7 @@ import {
   tweetAliExpressProduct, 
   formatAliExpressProduct 
 } from './aliexpress.js';
-import { startCrons, triggerSummaryNow } from './cron.js';
+import { startCrons, triggerSummaryNow, runEventTweets } from './cron.js';
 import { loadSecretsFromSSM } from './aws.js';
 import { 
   generateImage, 
@@ -94,11 +94,11 @@ app.get('/', (req, res) => {
       'GET /dashboard',
       'POST /webhooks/register',
       'POST /webhooks/setup',
-      'POST /cron/trigger-summary   (manual daily cross-platform tweet)',
+      'POST /cron/trigger-summary, /cron/trigger-events   (manual daily + special events)',
       'POST /import/to-shopify',
       'POST /ebay/webhooks   (eBay Event Notifications)',
       'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)',
-      'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access'
+      'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access, /promote-tweet'
     ]
   });
 });
@@ -433,6 +433,18 @@ app.get('/twitter/ads-access', async (req, res) => {
   res.json(access);
 });
 
+app.post('/promote-tweet', async (req, res) => {
+  try {
+    const { tweetId, options } = req.body;
+    if (!tweetId) return res.status(400).json({ error: 'tweetId required' });
+    const result = await promoteTweet(tweetId, options || {});
+    logger.promptLog('TWEET PROMOTED VIA ADS', { tweetId, result });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Promotion failed', details: err.message });
+  }
+});
+
 // Legacy alias for backward compat
 app.post('/import/aliexpress-to-shopify', (req, res) => {
   req.body.platform = 'aliexpress';
@@ -572,6 +584,15 @@ app.post('/cron/trigger-summary', async (req, res) => {
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ error: 'Failed to trigger summary', details: err.message });
+  }
+});
+
+app.post('/cron/trigger-events', async (req, res) => {
+  try {
+    const result = await runEventTweets();
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to trigger events', details: err.message });
   }
 });
 

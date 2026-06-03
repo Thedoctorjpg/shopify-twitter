@@ -14,12 +14,21 @@ import { logger } from './utils.js';
 import { getProducts } from './shopify.js';
 import { getEbayProducts, formatEbayProductForTweet } from './ebay.js';
 import { searchAliExpressProducts, formatAliExpressProduct } from './aliexpress.js';
-import { postToTwitter } from './twitter.js';
+import { postToTwitter, tweetSpecialEvent } from './twitter.js';
 import nodemailer from 'nodemailer';
 
 const ENABLE_CRON = process.env.ENABLE_DAILY_SUMMARY_CRON === 'true';
 const CRON_SCHEDULE = process.env.DAILY_SUMMARY_CRON_SCHEDULE || '0 18 * * *'; // 6pm UTC daily
 const ALI_KEYWORDS = (process.env.DAILY_SUMMARY_KEYWORDS || 'trending gadgets,wireless earbuds,portable blender').split(',').map(k => k.trim());
+
+// Event wiring config (add more via env or code)
+const SPECIAL_EVENTS = [
+  { name: 'Black Friday', month: 11, day: 29, platform: 'Shopify' }, // Nov 29 example
+  { name: 'Cyber Monday', month: 12, day: 2, platform: 'eBay' },
+  { name: 'Holiday Launch', month: 12, day: 1, platform: 'AliExpress' },
+  // Add more: { name: 'Valentines', month: 2, day: 14, ... }
+  // Or load from DB/env JSON
+];
 
 let cronTask = null;
 
@@ -109,12 +118,13 @@ export function startCrons() {
 
   cronTask = cron.schedule(CRON_SCHEDULE, async () => {
     await runDailySummary();
+    await runEventTweets(); // Wire special events
   }, {
     scheduled: true,
     timezone: 'UTC'
   });
 
-  logger.info(`Daily cross-platform summary cron started. Schedule: ${CRON_SCHEDULE} (UTC)`);
+  logger.info(`Daily cross-platform summary + events cron started. Schedule: ${CRON_SCHEDULE} (UTC)`);
 }
 
 /**
@@ -122,6 +132,51 @@ export function startCrons() {
  */
 export async function triggerSummaryNow() {
   return runDailySummary();
+}
+
+/**
+ * Check for today's special events and tweet if matches.
+ * Called from daily cron.
+ */
+export async function runEventTweets() {
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+
+  const matchingEvents = SPECIAL_EVENTS.filter(e => e.month === month && e.day === day);
+
+  if (matchingEvents.length === 0) {
+    logger.debug('No special events today for cron');
+    return { success: true, eventsRun: 0 };
+  }
+
+  const results = [];
+  for (const event of matchingEvents) {
+    try {
+      // Get a "best" item from the platform
+      let item = null;
+      if (event.platform === 'Shopify') {
+        const prods = await getProducts({ limit: 1 });
+        item = prods[0];
+      } else if (event.platform === 'eBay') {
+        const items = await getEbayProducts({ limit: 1, q: 'deal' });
+        item = items[0];
+      } else if (event.platform === 'AliExpress') {
+        const items = await searchAliExpressProducts('holiday deal', { limit: 1 });
+        item = items[0];
+      }
+
+      if (item) {
+        const res = await tweetSpecialEvent(event.name, item, { platform: event.platform });
+        results.push({ event: event.name, platform: event.platform, result: res });
+        logger.info(`Event tweet for ${event.name} on ${event.platform}`);
+      }
+    } catch (e) {
+      logger.error(`Failed event tweet for ${event.name}`, e);
+    }
+  }
+
+  return { success: true, eventsRun: results.length, results };
 }
 
 /**
@@ -195,4 +250,4 @@ export async function runDailySummary() {
   return { success: true, items, tweetResults };
 }
 
-export default { startCrons, runDailySummary, triggerSummaryNow };
+export default { startCrons, runDailySummary, triggerSummaryNow, runEventTweets };
