@@ -52,11 +52,18 @@ docker tag $ServiceName $ImageTag
 docker push $ImageTag
 
 Write-Host "Updating or creating App Runner service with new image..."
-# This assumes service exists; for first time use console or full create-service command
+# Try update; if fails (e.g. service not exist), try create.
+$SERVICE_ARN = "arn:aws:apprunner:$Region:$(aws sts get-caller-identity --query Account --output text):service/$ServiceName"
 aws apprunner update-service `
-    --service-arn "arn:aws:apprunner:$Region:$(aws sts get-caller-identity --query Account --output text):service/$ServiceName" `
+    --service-arn $SERVICE_ARN `
     --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"$ImageTag\",\"ImageRepositoryType\":\"ECR\"}}" `
-    --region $Region
+    --region $Region || `
+aws apprunner create-service `
+    --service-name $ServiceName `
+    --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"$ImageTag\",\"ImageRepositoryType\":\"ECR\",\"ImageConfiguration\":{\"Port\":\"3000\",\"RuntimeEnvironmentVariables\":{\"NODE_ENV\":\"production\"}}}}" `
+    --instance-configuration Cpu=1vCPU,Memory=2GB `
+    --health-check-configuration Protocol=HTTP,Path=/health,Interval=10,Timeout=5,HealthyThreshold=1,UnhealthyThreshold=5 `
+    --region $Region || Write-Host "Create/update may have failed (check console or use GitHub source). Service ARN: $SERVICE_ARN"
 
 Write-Host "✅ Deploy triggered. Check App Runner console for status and your new public URL." -ForegroundColor Green
 Write-Host "After deploy, set WEBHOOK_BASE_URL (and other secrets via SSM or App Runner env) and call POST /webhooks/setup"

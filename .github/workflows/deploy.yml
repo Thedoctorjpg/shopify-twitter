@@ -11,6 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "::error::Missing required secrets: AWS_ACCESS_KEY_ID and/or AWS_SECRET_ACCESS_KEY"
+            echo "Go to GitHub repo Settings > Secrets and variables > Actions to add them."
+            echo "The IAM user must have permissions for ECR (ecr:*) and App Runner (apprunner:UpdateService, apprunner:DescribeService, etc.)."
+            exit 1
+          fi
+          echo "AWS secrets are set."
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+            echo "::warning::AWS_ACCOUNT_ID not set. Update-service may fail if ARN construction needs it."
+          fi
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -54,11 +67,17 @@ jobs:
           SERVICE_NAME="shopify-x-integration"
           SERVICE_ARN="arn:aws:apprunner:$REGION:$ACCOUNT_ID:service/$SERVICE_NAME"
 
-          # Try ECR update (assumes you have ECR image pushed)
+          # Try ECR update (assumes you have ECR image pushed). If fails (e.g. service not exist), try to create it.
           aws apprunner update-service \
             --service-arn $SERVICE_ARN \
             --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"${{ steps.login-ecr.outputs.registry }}/shopify-x-integration:latest\",\"ImageRepositoryType\":\"ECR\"}}" \
-            --region $REGION || echo "ECR update failed or service not pre-created. Create via Console or switch to GitHub source."
+            --region $REGION || \
+          aws apprunner create-service \
+            --service-name $SERVICE_NAME \
+            --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"${{ steps.login-ecr.outputs.registry }}/shopify-x-integration:latest\",\"ImageRepositoryType\":\"ECR\",\"ImageConfiguration\":{\"Port\":\"3000\",\"RuntimeEnvironmentVariables\":{\"NODE_ENV\":\"production\"}}}}" \
+            --instance-configuration Cpu=1vCPU,Memory=2GB \
+            --health-check-configuration Protocol=HTTP,Path=/health,Interval=10,Timeout=5,HealthyThreshold=1,UnhealthyThreshold=5 \
+            --region $REGION || echo "Create/update may have failed (service may exist or needs manual setup). Check AWS Console. For simpler deploys use GitHub source."
 
       - name: Output
         run: |

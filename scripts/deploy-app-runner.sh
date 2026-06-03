@@ -30,7 +30,13 @@ docker push $IMAGE_TAG
 aws apprunner update-service \
   --service-arn "arn:aws:apprunner:$REGION:$(aws sts get-caller-identity --query Account --output text):service/$SERVICE_NAME" \
   --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"$IMAGE_TAG\",\"ImageRepositoryType\":\"ECR\"}}" \
-  --region $REGION
+  --region $REGION || \
+aws apprunner create-service \
+  --service-name $SERVICE_NAME \
+  --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"$IMAGE_TAG\",\"ImageRepositoryType\":\"ECR\",\"ImageConfiguration\":{\"Port\":\"3000\",\"RuntimeEnvironmentVariables\":{\"NODE_ENV\":\"production\"}}}}" \
+  --instance-configuration Cpu=1vCPU,Memory=2GB \
+  --health-check-configuration Protocol=HTTP,Path=/health,Interval=10,Timeout=5,HealthyThreshold=1,UnhealthyThreshold=5 \
+  --region $REGION || echo "Create/update may have failed (check console or use GitHub source)."
 
 echo "✅ Deploy started. Monitor in App Runner console."
 echo "Set WEBHOOK_BASE_URL after deploy and POST /webhooks/setup + /cron etc."
