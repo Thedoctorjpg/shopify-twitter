@@ -12,7 +12,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { resolve } from 'path';
-import { getProducts, getOrders, getProductById, getOrderById, registerWebhook, listWebhooks } from './shopify.js';
+import { getProducts, getOrders, getProductById, getOrderById, registerWebhook, listWebhooks, createProduct, importToShopifyFromExternal } from './shopify.js';
 import { postToTwitter, tweetNewProduct, tweetNewOrder } from './twitter.js';
 import { 
   logger, 
@@ -41,13 +41,18 @@ import {
   tweetAliExpressProduct, 
   formatAliExpressProduct 
 } from './aliexpress.js';
+import { startCrons, triggerSummaryNow } from './cron.js';
+import { loadSecretsFromSSM } from './aws.js';
 
 dotenv.config();
+
+// Load secrets from AWS SSM Parameter Store early if enabled (for App Runner/ECS secure config)
+await loadSecretsFromSSM().catch(() => {});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET;
-const WEBHOOK_BASE_URL = (process.env.WEBHOOK_BASE_URL || '').replace(/\/$/, ''); // no trailing slash
+const WEBHOOK_BASE_URL = (process.env.WEBHOOK_BASE_URL || process.env.AWS_WEBHOOK_BASE_URL || '').replace(/\/$/, ''); // no trailing slash
 
 // CORS for frontend later
 app.use(cors({
@@ -57,6 +62,7 @@ app.use(cors({
 // IMPORTANT: For webhook verification we need raw body on /webhooks route.
 // Use a specific raw middleware only for webhooks.
 app.use('/webhooks', express.raw({ type: 'application/json' }));
+app.use('/ebay/webhooks', express.raw({ type: 'application/json' }));
 
 // Normal JSON parser for everything else
 app.use(express.json());
@@ -81,7 +87,10 @@ app.get('/', (req, res) => {
       'POST /webhooks',
       'GET /dashboard',
       'POST /webhooks/register',
-      'POST /webhooks/setup'
+      'POST /webhooks/setup',
+      'POST /cron/trigger-summary   (manual daily cross-platform tweet)',
+      'POST /import/aliexpress-to-shopify',
+      'POST /ebay/webhooks   (eBay Event Notifications)'
     ]
   });
 });
@@ -201,6 +210,45 @@ app.post('/tweet-ebay-product', async (req, res) => {
   }
 });
 
+// eBay Event Notifications receiver (real webhooks from eBay)
+app.post('/ebay/webhooks', async (req, res) => {
+  const signature = req.headers['x-ebay-signature'];
+  const rawBody = req.body.toString('utf8');
+
+  const isValid = await verifyEbayWebhook(rawBody, signature);
+  if (!isValid) {
+    logger.warn('eBay webhook rejected: invalid signature');
+    return res.status(401).send('Invalid signature');
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch (e) {
+    return res.status(400).send('Bad JSON');
+  }
+
+  const topic = payload.metadata?.topic || payload.eventType || 'unknown';
+  logger.info(`eBay webhook received: ${topic}`, { id: payload.notificationId || payload.id });
+
+  // React to eBay events (e.g. item listed, order, etc.)
+  try {
+    if (topic.includes('ITEM') || topic.includes('LISTED')) {
+      // Example: tweet new eBay listing
+      if (payload.data?.item) {
+        await tweetEbayProduct(payload.data.item);
+        logger.info('Auto-tweeted from eBay webhook (item event)');
+      }
+    }
+    // Add more handlers: 'ORDER', 'RETURN', etc.
+  } catch (err) {
+    logger.error('Error processing eBay webhook side effects', err);
+  }
+
+  // Always ack quickly
+  res.status(200).send('OK');
+});
+
 // ---------- AliExpress Routes ----------
 app.get('/aliexpress/search', async (req, res) => {
   try {
@@ -232,6 +280,31 @@ app.post('/tweet-aliexpress-product', async (req, res) => {
   } catch (err) {
     logger.error('tweet-aliexpress failed', err);
     res.status(500).json({ error: 'Failed to tweet AliExpress product' });
+  }
+});
+
+// ---------- Product Import Flows (e.g. AliExpress -> Shopify draft) ----------
+app.post('/import/aliexpress-to-shopify', async (req, res) => {
+  try {
+    const { itemId, keywords, item } = req.body;
+    let aliItem = item;
+
+    if (!aliItem && itemId) {
+      aliItem = await getAliExpressProduct(itemId);
+    } else if (!aliItem && keywords) {
+      const results = await searchAliExpressProducts(keywords, { limit: 1 });
+      aliItem = results[0];
+    }
+    if (!aliItem) return res.status(400).json({ error: 'item, itemId or keywords required' });
+
+    const normalized = formatAliExpressProduct(aliItem);
+    const shopifyProduct = await importToShopifyFromExternal(normalized, 'AliExpress');
+
+    logger.promptLog('IMPORTED ALIEXPRESS TO SHOPIFY', { ali: normalized, shopifyId: shopifyProduct.id, status: shopifyProduct.status });
+    res.json({ success: true, shopifyProduct });
+  } catch (err) {
+    logger.error('import aliexpress to shopify failed', err);
+    res.status(500).json({ error: 'Import failed', details: err.message });
   }
 });
 
@@ -359,6 +432,16 @@ app.post('/webhooks/setup', async (req, res) => {
   res.json({ success: true, baseUrl: WEBHOOK_BASE_URL, webhookUrl, results });
 });
 
+// ---------- Daily Cross-Platform Summary Cron ----------
+app.post('/cron/trigger-summary', async (req, res) => {
+  try {
+    const result = await triggerSummaryNow();
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to trigger summary', details: err.message });
+  }
+});
+
 // ---------- SIMPLE SERVER-SIDE DASHBOARD (HTML) ----------
 app.get('/dashboard', async (req, res) => {
   try {
@@ -408,8 +491,8 @@ app.get('/dashboard', async (req, res) => {
           </div>
 
           <footer style="margin-top:60px;color:#888;font-size:12px">
-            Webhooks: X/Twitter • WordPress • External (Google Apps Script, Cloud, etc.)<br>
-            Use <code>POST /webhooks/setup</code> (when WEBHOOK_BASE_URL is set) or register manually.
+            Multi-platform: Shopify + eBay + AliExpress → X + WP + externals + daily cron summaries<br>
+            AWS ready (SSM secrets, App Runner). POST /cron/trigger-summary , /import/aliexpress-to-shopify , /ebay/webhooks
           </footer>
         </body>
       </html>
@@ -446,6 +529,9 @@ if (isMainModule) {
     if (WEBHOOK_BASE_URL) {
       logger.info(`   Remote mode enabled. Use POST /webhooks/setup to register common topics.`);
     }
+
+    // Start scheduled jobs (daily summaries across Shopify + eBay + AliExpress)
+    startCrons();
   });
 }
 

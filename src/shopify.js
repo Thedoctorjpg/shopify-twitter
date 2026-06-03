@@ -173,4 +173,46 @@ export async function setupCommonWebhooks(baseUrl) {
   return { webhookUrl, results };
 }
 
+/**
+ * Create a new product in Shopify (as draft by default).
+ * Useful for import flows from AliExpress, eBay, etc.
+ * @param {object} productData - { title, body_html, vendor, product_type, variants: [{price}], images: [{src}], tags, ... }
+ */
+export async function createProduct(productData) {
+  try {
+    const payload = { product: productData };
+    const response = await shopify.post('/products.json', payload);
+    const created = response.data.product;
+    logger.info('Created Shopify product', { id: created.id, title: created.title });
+    return created;
+  } catch (err) {
+    logger.error('Failed to create Shopify product', err);
+    throw err;
+  }
+}
+
+/**
+ * Convenience: Import an AliExpress (or normalized) item as a Shopify draft product.
+ */
+export async function importToShopifyFromExternal(normalizedItem, platform = 'External') {
+  const productData = {
+    title: normalizedItem.title,
+    body_html: `<p>Imported from ${platform}.</p><p>Original: <a href="${normalizedItem.url}">${normalizedItem.url}</a></p>`,
+    vendor: platform,
+    product_type: 'Imported',
+    status: 'draft', // safe default
+    variants: [{
+      price: normalizedItem.price || '0.00',
+      sku: normalizedItem.id ? String(normalizedItem.id) : undefined
+    }],
+    tags: `imported,${platform.toLowerCase()},aliexpress,ebay`.split(',').filter(Boolean).join(',')
+  };
+
+  if (normalizedItem.image) {
+    productData.images = [{ src: normalizedItem.image }];
+  }
+
+  return createProduct(productData);
+}
+
 export default shopify;

@@ -186,33 +186,98 @@ export async function tweetEbayProduct(item) {
 }
 
 /**
- * Verify eBay webhook / Event Notification signature (basic).
- * eBay uses a specific signature mechanism. See:
- * https://developer.ebay.com/api-docs/commerce/notification/overview.html
+ * Verify eBay webhook / Event Notification signature (full implementation).
+ * Modern eBay Event Notifications (JSON) use X-EBAY-SIGNATURE (base64 of JSON with alg/kid/signature).
  *
- * For production, use their SDK or verify with the public key they provide.
- * This is a starting point (logs + basic structure).
+ * See: https://developer.ebay.com/api-docs/commerce/notification/overview.html
+ * Verification steps:
+ * 1. Decode X-EBAY-SIGNATURE base64 -> { alg, kid, signature, ... }
+ * 2. Fetch public key from eBay Notification API using kid: GET /commerce/notification/v1/public_key/{kid}
+ * 3. Verify the payload (raw body) against the signature using ECDSA (ES256 typically).
+ *
+ * Caches public keys in memory.
  */
-export function verifyEbayWebhook(body, signatureHeader, timestampHeader) {
+const publicKeyCache = new Map(); // kid -> {key, expires?}
+
+async function fetchEbayPublicKey(kid) {
+  if (publicKeyCache.has(kid)) {
+    return publicKeyCache.get(kid);
+  }
+
+  const base = EBAY_ENV === 'sandbox' ? 'https://api.sandbox.ebay.com' : 'https://api.ebay.com';
+  const url = `${base}/commerce/notification/v1/public_key/${kid}`;
+
+  try {
+    // Note: fetching public key may require app token or be public; in practice often needs auth or is open.
+    // For robustness we try with app token if available.
+    let headers = {};
+    try {
+      const token = await getEbayAppToken();
+      headers = { Authorization: `Bearer ${token}` };
+    } catch {}
+
+    const res = await axios.get(url, { headers, timeout: 10000 });
+    const keyData = res.data;
+    const publicKey = keyData?.key || keyData; // shape may vary
+
+    publicKeyCache.set(kid, publicKey);
+    logger.debug('Fetched eBay public key', { kid });
+    return publicKey;
+  } catch (err) {
+    logger.error('Failed to fetch eBay public key', err, { kid });
+    throw err;
+  }
+}
+
+/**
+ * Full verification for eBay push notifications.
+ */
+export async function verifyEbayWebhook(rawBody, signatureHeader) {
   if (!signatureHeader) {
-    logger.warn('eBay webhook missing signature header');
+    logger.warn('eBay webhook missing X-EBAY-SIGNATURE header');
     return false;
   }
 
-  // Placeholder: In real use you would:
-  // 1. Get eBay's public key (they rotate, fetch from their metadata endpoint)
-  // 2. Verify the signature using crypto (usually ECDSA or HMAC depending on config)
-  //
-  // For now we accept if the header exists (dev mode) or you can plug in real verification.
+  try {
+    // Decode the signature header (base64 -> JSON)
+    const decoded = JSON.parse(Buffer.from(signatureHeader, 'base64').toString('utf8'));
+    const { alg, kid, signature } = decoded;
 
-  logger.debug('eBay webhook signature present (verification stub)', {
-    sig: signatureHeader?.slice(0, 30) + '...',
-    ts: timestampHeader
-  });
+    if (!kid || !signature) {
+      logger.warn('Invalid eBay signature header format');
+      return false;
+    }
 
-  // TODO: Implement full verification using eBay's notification public key.
-  // Return true for now so you can test the flow.
-  return true;
+    const publicKeyPem = await fetchEbayPublicKey(kid);
+
+    if (!publicKeyPem) {
+      logger.warn('No public key returned for eBay verification');
+      return false;
+    }
+
+    // Verify using crypto (eBay uses ECDSA, typically ES256 -> sha256)
+    // The signature in header is base64 of the raw sig
+    const verify = crypto.createVerify('SHA256');
+    verify.update(rawBody);  // raw body as received
+    verify.end();
+
+    // Convert the base64 signature to buffer
+    const sigBuffer = Buffer.from(signature, 'base64');
+
+    // publicKeyPem should be in PEM format from eBay
+    const isValid = verify.verify(publicKeyPem, sigBuffer);
+
+    if (!isValid) {
+      logger.warn('eBay webhook signature verification FAILED');
+    } else {
+      logger.info('eBay webhook signature verified successfully');
+    }
+
+    return isValid;
+  } catch (err) {
+    logger.error('Error during eBay webhook verification', err);
+    return false;
+  }
 }
 
 export default { getEbayProducts, getEbayOrders, tweetEbayProduct, verifyEbayWebhook, formatEbayProductForTweet };

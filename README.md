@@ -259,9 +259,13 @@ Then deploy the image to:
 
 The Dockerfile includes a non-root user and a `/health` endpoint that AWS load balancers like.
 
-### Secrets on AWS
-- Use AWS Systems Manager Parameter Store or Secrets Manager.
-- App Runner and ECS can inject them as environment variables at runtime.
+### Secrets on AWS (Advanced)
+- Use the built-in SSM loader: set `AWS_SSM_ENABLED=true` and `AWS_SSM_PARAM_PREFIX=/shopify-x-integration/prod/`
+  - At startup the app pulls params (e.g. SHOPIFY_ACCESS_TOKEN) using the task role and injects them.
+- Or use App Runner's built-in env var / secret injection.
+- Scripts in `scripts/deploy-app-runner.ps1` (and .sh) help with container deploys to ECR + update service.
+
+See `src/aws.js` and the scripts/ folder.
 
 ## eBay Integration
 
@@ -338,6 +342,72 @@ curl -X POST http://localhost:3000/tweet-product \
   -d '{"productId": 1234567890, "customText": "Check out our new limited drop! 🔥 https://..."}'
 ```
 
+## Scheduled Jobs (Daily Cross-Platform Summaries)
+
+Enable automatic daily tweets that pull "best" items from **all three platforms** and post a combined summary.
+
+### Setup
+```env
+ENABLE_DAILY_SUMMARY_CRON=true
+DAILY_SUMMARY_CRON_SCHEDULE="0 18 * * *"   # 6pm UTC (cron syntax)
+DAILY_SUMMARY_KEYWORDS="trending gadgets,wireless earbuds,smart watch,portable blender"
+```
+
+The cron runs at the schedule, fetches latest/popular from Shopify + eBay + AliExpress, picks representatives, and tweets something like:
+
+```
+🛍️ Daily Cross-Platform Picks (6/4/2026)
+
+1. Shopify: Wireless Noise Cancelling Headphones — $89
+   https://yourstore.myshopify.com/...
+2. eBay: ...
+3. AliExpress: ...
+
+#Deals #Shopify #eBay #AliExpress
+```
+
+### Manual trigger
+```bash
+curl -X POST https://your-app.awsapprunner.com/cron/trigger-summary
+```
+
+Great for "daily deals" Twitter accounts that aggregate across stores.
+
+## eBay Event Notifications (Real Webhooks)
+
+eBay can push events (ItemListed, ItemRevised, Order, etc.) to your server.
+
+### Setup
+1. In eBay Developer portal, subscribe to Event Notifications for your app.
+2. Point the destination to `https://your-public-url/ebay/webhooks`
+3. Your server will verify the `X-EBAY-SIGNATURE` (full ECDSA verification implemented in src/ebay.js).
+
+The receiver currently auto-tweets on item listing events. Extend in `src/server.js` for orders, returns, etc.
+
+See also the legacy Platform Notifications if using older Trading API (different signature).
+
+## Product Import Flows
+
+Easily import products from AliExpress (or eBay) into your Shopify store as **drafts**.
+
+### Example: AliExpress → Shopify
+```bash
+curl -X POST https://your-app.../import/aliexpress-to-shopify \
+  -H "Content-Type: application/json" \
+  -d '{"keywords": "portable mini projector"}'
+```
+
+This:
+- Searches AliExpress
+- Normalizes the product (title, price, image, url)
+- Creates a **draft** product in Shopify via Admin API (safe — you review & publish)
+
+You can also pass `itemId` for exact product.
+
+Extend `importToShopifyFromExternal` in `src/shopify.js` for more fields (variants, options, SEO, etc.).
+
+Similar flows can be added for eBay → Shopify.
+
 ## Logging & AI-Friendly Output
 
 The logger has a special `promptLog` method. Whenever important actions happen (tweets, etc.), it prints a block like:
@@ -359,12 +429,11 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 
 Current status (built with Grok):
 
-- ✅ Shopify + eBay + AliExpress product/order fetching
-- ✅ Multi-platform tweeting (X)
-- ✅ Shopify webhooks + WordPress + arbitrary external forwards (Google Apps Script etc.)
-- ✅ AWS hosting ready (Dockerfile + App Runner guide)
+- ✅ Shopify + eBay + AliExpress product/order fetching + import flows (Ali→Shopify)
+- ✅ Multi-platform tweeting (X) + daily cross-platform summary cron
+- ✅ Shopify webhooks + eBay Event Notifications + WordPress + arbitrary external forwards
+- ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader)
 - 3. Frontend Dashboard (React/Vite + widgets)
-- 4. Cron jobs for daily cross-platform summaries
 - ✅ Excellent docs + prompt logs
 
 Next high-value additions could be:

@@ -11,19 +11,25 @@
   },
   "keywords": [
     "shopify",
+    "ebay",
+    "aliexpress",
     "twitter",
     "x",
     "integration",
     "webhooks",
-    "ecommerce"
+    "cron",
+    "ecommerce",
+    "aws"
   ],
   "author": "Built with Grok",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.1061.0",
     "axios": "^1.17.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "node-cron": "^4.2.1",
     "twitter-api-v2": "^1.29.0"
   }
 }
