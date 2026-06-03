@@ -1,43 +1,53 @@
 # Dockerfile for shopify-x-integration
-# Optimized for AWS App Runner, ECS/Fargate, Elastic Beanstalk (Docker), etc.
-# Gives you a clean public HTTPS URL perfect for Shopify, eBay, and other webhooks.
+# Builds backend + React frontend into a single container for easy deploy to AWS App Runner, ECS, etc.
+# The Express server serves the API + the built frontend static files (SPA).
 
 FROM node:20-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
+# 1. Backend production deps
+FROM base AS backend-deps
 WORKDIR /app
-
-# Copy package files
 COPY package.json package-lock.json* ./
 RUN npm ci --only=production && npm cache clean --force
 
-# Production image
+# 2. Build frontend (needs dev deps)
+FROM base AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
+
+# 3. Final production image
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Create non-root user for security (good practice on AWS)
+# Non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 appuser
 
-# Copy production node_modules
-COPY --from=deps /app/node_modules ./node_modules
+# Copy backend prod deps
+COPY --from=backend-deps /app/node_modules ./node_modules
 
-# Copy application code
-COPY . .
+# Copy app source (backend)
+COPY src ./src
+COPY package.json ./
 
-# Set ownership
+# Copy built frontend
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
+# Ownership
 RUN chown -R appuser:nodejs /app
 
 USER appuser
 
 EXPOSE 3000
 
-# Health check (App Runner and load balancers like this)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })" || exit 1
 
 CMD ["node", "src/server.js"]

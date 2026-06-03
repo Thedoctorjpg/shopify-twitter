@@ -27,7 +27,7 @@ if ($FromGitHub) {
     # This script shows the update command if service already exists.
     aws apprunner update-service `
         --service-arn "arn:aws:apprunner:$Region:$(aws sts get-caller-identity --query Account --output text):service/$ServiceName" `
-        --source-configuration '{"CodeRepository":{"RepositoryUrl":"https://github.com/Thedoctorjpg/shopify-twitter","CodeConfiguration":{"CodeConfigurationValues":{"Runtime":"NODEJS_18","BuildCommand":"npm install","StartCommand":"npm start","Port":"3000"}}}}' `
+        --source-configuration '{"CodeRepository":{"RepositoryUrl":"https://github.com/Thedoctorjpg/shopify-twitter","CodeConfiguration":{"CodeConfigurationValues":{"Runtime":"NODEJS_18","BuildCommand":"npm install && npm run build:frontend","StartCommand":"npm start","Port":"3000"}}}}' `
         --region $Region
 
     Write-Host "If service doesn't exist yet, create it in the AWS Console (App Runner > Create service > GitHub source)." -ForegroundColor Yellow

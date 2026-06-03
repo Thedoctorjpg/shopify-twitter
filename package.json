@@ -10,7 +10,8 @@
     "dev:full": "concurrently \"npm run dev\" \"cd frontend && npm run dev\"",
     "test": "echo \"No tests yet\" && exit 0",
     "frontend": "cd frontend && npm run dev",
-    "build:frontend": "cd frontend && npm run build"
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:frontend && echo 'Frontend built. Backend is ready (Docker will handle full build).'"
   },
   "keywords": [
     "shopify",

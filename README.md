@@ -221,52 +221,70 @@ Add your own reactions easily in `src/server.js` inside the webhook handler.
 
 ## Deploying to Amazon Web Services (AWS)
 
-This app is container-ready and works great on AWS.
+This app is now a **unified full-stack container** (backend API + React frontend served from the same port).
 
 ### Recommended: AWS App Runner (easiest)
 
-1. Push your code to GitHub (you already did).
-2. Go to AWS App Runner → Create service → Source = GitHub.
-3. Select this repo + branch.
+**Option 1: GitHub source (zero-config, recommended for first deploy)**
+1. Push to GitHub.
+2. AWS Console → App Runner → Create service → Source = GitHub repository.
+3. Select repo/branch.
 4. Build settings:
-   - Runtime: Node.js (or use the Dockerfile for more control)
-   - For Dockerfile: Choose "Deploy with a Dockerfile"
-5. Environment variables: Copy everything from your `.env` (especially `SHOPIFY_*`, Twitter keys, `WEBHOOK_BASE_URL` will be set after first deploy).
-6. After deploy, App Runner gives you a URL like `https://abc123.us-west-2.awsapprunner.com`.
-7. Set `WEBHOOK_BASE_URL` (or `AWS_WEBHOOK_BASE_URL`) to that URL and restart/redeploy.
-8. Run:
+   - Runtime: **Node.js** (or "Deploy with a Dockerfile" for full control)
+   - If Node.js: Build command `npm install && npm run build:frontend`
+   - Start command: `npm start`
+   - Port: 3000
+5. Health check path: `/health`
+6. After deploy, set environment variables (all your `SHOPIFY_*`, `TWITTER_*`, `XAI_API_KEY`, `USE_GROK_COPY=true`, `WEBHOOK_BASE_URL= the public URL`, etc.) in the service configuration.
+7. Deploy / update → get public URL like `https://abc123.us-west-2.awsapprunner.com`
+8. Post-deploy:
    ```bash
-   curl -X POST https://your-app.awsapprunner.com/webhooks/setup
+   curl -X POST https://your-app.../webhooks/setup
+   curl -X POST https://your-app.../cron/trigger-events
    ```
 
-App Runner gives you automatic HTTPS, scaling, and a stable public URL — perfect for Shopify + eBay webhooks.
+**Option 2: Container (ECR + our Dockerfile)**
+- Use the included `Dockerfile` (it now builds the React frontend + serves it + API from one container).
+- GitHub Action (`.github/workflows/deploy.yml`) builds/pushes to ECR and updates the service on push to main.
+- Or run locally: `powershell -File scripts/deploy-app-runner.ps1 -FromGitHub` or with ECR.
+
+The Dockerfile + server now automatically serves the built UI at `/` and API routes take precedence.
+
+### GitHub Action Deploy
+- Triggers on push to main or manual.
+- Requires repo secrets:
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+  - `AWS_REGION` (default us-west-2)
+  - `AWS_ACCOUNT_ID`
+- First time: create the App Runner service in console (pointing to your ECR repo or use GitHub source).
+- The workflow will then update it.
+
+See the workflow file and scripts/ for details. The action now handles the unified build.
+
+App Runner gives you automatic HTTPS, scaling, and a stable public URL — perfect for webhooks.
 
 ### Alternative: Docker on ECS / Fargate / Elastic Beanstalk
 
-We provide a production `Dockerfile` + `.dockerignore`.
+Use the production `Dockerfile` + `.dockerignore`.
 
-Build & push:
 ```bash
 docker build -t shopify-x-integration .
+# push to ECR or your registry
 docker tag ... your-ecr-repo
 docker push ...
 ```
 
-Then deploy the image to:
-- AWS App Runner (container)
-- ECS Fargate
-- Elastic Beanstalk (Docker platform)
-- EKS (overkill for this)
-
-The Dockerfile includes a non-root user and a `/health` endpoint that AWS load balancers like.
+Deploy the image. The container serves both frontend and backend.
 
 ### Secrets on AWS (Advanced)
 - Use the built-in SSM loader: set `AWS_SSM_ENABLED=true` and `AWS_SSM_PARAM_PREFIX=/shopify-x-integration/prod/`
-  - At startup the app pulls params (e.g. SHOPIFY_ACCESS_TOKEN) using the task role and injects them.
-- Or use App Runner's built-in env var / secret injection.
-- Scripts in `scripts/deploy-app-runner.ps1` (and .sh) help with container deploys to ECR + update service.
+- Or App Runner environment variables / secrets.
+- Scripts in `scripts/` help.
 
-See `src/aws.js` and the scripts/ folder.
+See `src/aws.js`.
+
+**Important for production**: Set `WEBHOOK_BASE_URL` (and `AWS_WEBHOOK_BASE_URL`) to your public App Runner URL so webhooks and crons know the correct address.
 
 ## eBay Integration
 

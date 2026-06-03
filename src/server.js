@@ -11,7 +11,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
-import { resolve } from 'path';
+import { resolve, dirname, join } from 'path';
+import fs from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { getProducts, getOrders, getProductById, getOrderById, registerWebhook, listWebhooks, createProduct, importToShopifyFromExternal } from './shopify.js';
 import { postToTwitter, tweetNewProduct, tweetNewOrder, postMarketingTweet, getTweetMetrics, tweetSpecialEvent, checkAdsAccess, promoteTweet } from './twitter.js';
 import { 
@@ -664,8 +668,29 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// ---------- Serve React Frontend (for unified App Runner deploy) ----------
+// This must come AFTER all API routes so they take precedence.
+// Build frontend first: npm run build:frontend (produces frontend/dist)
+// Serve React frontend (must be after API routes)
+const frontendPath = join(__dirname, '../frontend/dist');
+
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
+  // SPA fallback for client-side routes (current app is mostly single-page)
+  app.get('*', (req, res) => {
+    // Defensive: if somehow an API path reaches here
+    const apiPaths = ['/products', '/orders', '/ebay', '/aliexpress', '/generate', '/edit', '/import', '/tweet', '/cron', '/webhooks', '/health', '/promote', '/twitter'];
+    if (apiPaths.some(p => req.path.startsWith(p))) {
+      return res.status(404).json({ error: 'API route not found' });
+    }
+    res.sendFile(join(frontendPath, 'index.html'));
+  });
+  logger.info('Serving React frontend from frontend/dist (unified deploy)');
+} else {
+  logger.info('No frontend/dist found — running in API-only mode. Run "npm run build:frontend" to include UI.');
+}
+
 // ---------- START (only when run directly, not when imported) ----------
-const __filename = fileURLToPath(import.meta.url);
 const isMainModule = resolve(process.argv[1] || '') === resolve(__filename);
 
 if (isMainModule) {

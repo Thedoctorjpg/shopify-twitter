@@ -33,15 +33,33 @@ jobs:
           docker push $ECR_REGISTRY/shopify-x-integration:latest
 
       - name: Deploy to App Runner (update service)
-        # Assumes App Runner service already created pointing to this ECR repo
-        # Or use GitHub source instead (simpler, no ECR needed)
+        # Prerequisites:
+        # - Create the App Runner service FIRST in AWS Console (recommended for first deploy):
+        #   - Source: Container registry (ECR) or GitHub (zero-config, builds Dockerfile automatically)
+        #   - Service name: shopify-x-integration (or update below)
+        #   - Port: 3000
+        #   - Health check path: /health
+        # - For ECR path: the service must exist and be linked to the ECR repo.
+        # - Required secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (optional), AWS_ACCOUNT_ID
+        # GitHub source is simpler (no ECR keys needed, App Runner handles build).
         run: |
-          # Example update - replace with your service ARN
-          SERVICE_ARN="arn:aws:apprunner:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/shopify-x-integration"
+          REGION="${{ secrets.AWS_REGION || 'us-west-2' }}"
+          ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}"
+          SERVICE_NAME="shopify-x-integration"
+          SERVICE_ARN="arn:aws:apprunner:$REGION:$ACCOUNT_ID:service/$SERVICE_NAME"
+
+          # Try ECR update (assumes you have ECR image pushed)
           aws apprunner update-service \
             --service-arn $SERVICE_ARN \
             --source-configuration "{\"ImageRepository\":{\"ImageIdentifier\":\"${{ steps.login-ecr.outputs.registry }}/shopify-x-integration:latest\",\"ImageRepositoryType\":\"ECR\"}}" \
-            --region ${{ secrets.AWS_REGION }} || echo "Update may require console first time or use GitHub source"
+            --region $REGION || echo "ECR update failed or service not pre-created. Create via Console or switch to GitHub source."
 
       - name: Output
-        run: echo "Deploy triggered. Check AWS App Runner console. Use GitHub source for zero-config deploys."
+        run: |
+          echo "✅ Deploy triggered (if service existed)."
+          echo "Check AWS App Runner console for the service status and public URL."
+          echo "After first successful deploy:"
+          echo "  - Set environment variables (XAI_API_KEY, SHOPIFY_*, TWITTER_*, etc.) in App Runner service config or via SSM."
+          echo "  - Set WEBHOOK_BASE_URL to the new public URL."
+          echo "  - Call POST /webhooks/setup , /cron/trigger-events etc."
+          echo "For easier deploys: use GitHub source in App Runner console (it auto-builds the Dockerfile on push)."

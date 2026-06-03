@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-const API = 'http://localhost:3000' // Change for prod, or use /api with proxy
+const API = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
 
 function App() {
   const [shopifyProducts, setShopifyProducts] = useState([])
