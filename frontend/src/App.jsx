@@ -381,6 +381,10 @@ function App() {
             <button onClick={() => postSpecialEvent('Black Friday', {title: 'Huge Savings', price: '50'}, 'Shopify')}>Simulate Black Friday Tweet</button>
             <button onClick={() => postSpecialEvent('EOFY', {title: 'EOFY Clearance', price: '30'}, 'Shopify')}>Simulate EOFY Tweet</button>
             <button onClick={() => postSpecialEvent('Singles Day', {title: '11.11 Deals', price: '11'}, 'AliExpress')}>Simulate Singles Day Tweet</button>
+            <button onClick={() => postSpecialEvent('Valentines', {title: 'Valentine Gifts', price: '25'}, 'Shopify')}>Simulate Valentines Tweet</button>
+            <button onClick={() => postSpecialEvent("Mother's Day", {title: "Mom's Special", price: '40'}, 'eBay')}>Simulate Mother's Day Tweet</button>
+            <button onClick={() => postSpecialEvent("Father's Day", {title: "Dad's Gear", price: '35'}, 'AliExpress')}>Simulate Father's Day Tweet</button>
+            <button onClick={() => postSpecialEvent('Halloween', {title: 'Spooky Deals', price: '15'}, 'Shopify')}>Simulate Halloween Tweet</button>
             <button onClick={() => postMarketingTweet({title: 'New Collection Drop', price: '99'}, 'eBay')}>Test Marketing Tweet</button>
             <button onClick={async () => {
               const res = await fetch(`${API}/cron/trigger-events`, {method: 'POST'});
