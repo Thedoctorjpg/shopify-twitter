@@ -71,35 +71,147 @@ shopify-x-integration/
 ## Key Features Implemented
 
 - **Full Twitter posting** (OAuth 1.0a) with image upload from Shopify CDN
-- **Webhook receiver** at `POST /webhooks` with proper HMAC verification (`utils.js:verifyShopifyWebhook`)
-- Auto-tweet on `products/create` and `orders/create`
-- Webhook registration helper: `POST /webhooks/register`
+- **Webhook receiver** at `POST /webhooks` with proper HMAC verification
+- Auto-tweet + **WordPress posts** + **forward to external/Google** on webhook events
+- Supports many topics: `products/create`, `products/update`, `orders/create`, `orders/paid`, ...
+- Convenient `POST /webhooks/setup` (when `WEBHOOK_BASE_URL` is set)
 - Rich logging that prints clean JSON blocks (search for `PROMPT LOG` in console)
 
 ## Webhook Setup (Real-time Triggers)
 
-### Option A: Use the built-in registration endpoint
+**Your public webhook URL must be HTTPS and reachable by Shopify.**
 
+### 1. For Local Development
+Use a tunnel:
+```bash
+npx ngrok http 3000
+# or cloudflared, localtunnel, etc.
+```
+Then register:
 ```bash
 curl -X POST http://localhost:3000/webhooks/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "topic": "products/create",
-    "address": "https://your-public-url.ngrok.io/webhooks"
-  }'
+  -d '{"topic":"products/create","address":"https://abc123.ngrok.io/webhooks"}'
 ```
 
-(Use ngrok or similar for local development.)
+### 2. For Production / Remote Hosting (Recommended)
+Set `WEBHOOK_BASE_URL` in your `.env` (or hosting platform env vars):
 
-### Option B: In Shopify Admin
+```env
+WEBHOOK_BASE_URL=https://your-app.onrender.com
+# or https://your-service-xxx-uc.a.run.app   (Google Cloud Run)
+# or https://shopify-x-xxx.fly.dev
+```
 
-1. Go to Settings → Notifications → Webhooks
-2. Create webhook for:
-   - `Product creation` → `https://your-domain/webhooks`
-   - `Order creation`
-3. Use the same `SHOPIFY_WEBHOOK_SECRET` you put in `.env`
+Then use the one-command setup:
+```bash
+curl -X POST https://your-app.onrender.com/webhooks/setup
+```
 
-The secret is used to verify `X-Shopify-Hmac-Sha256` header.
+This registers the most useful topics (`products/create`, `products/update`, `orders/create`, `orders/paid`) pointing at your public `/webhooks` endpoint.
+
+You can also still use individual `POST /webhooks/register` or set them manually inside Shopify Admin.
+
+### 3. In Shopify Admin (Manual)
+Settings → Notifications → Webhooks → Create webhook  
+Use the exact same `SHOPIFY_WEBHOOK_SECRET` from your `.env`.
+
+The secret + HMAC verification protects your endpoint.
+
+## WordPress Integration
+
+When you create a new product in Shopify, the system can automatically create a draft (or published) post on your WordPress site.
+
+### Setup
+1. In WordPress: Users → Profile → Add New Application Password (give it a name like "Shopify Integration").
+2. Add to `.env`:
+
+```env
+WORDPRESS_SITE_URL=https://your-site.com
+WORDPRESS_USERNAME=admin
+WORDPRESS_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
+```
+
+3. Restart the server. New `products/create` webhooks will now create WordPress posts.
+
+The post includes title, price, featured image (as HTML), description, and a link back to the Shopify product. Tags are synced too.
+
+You can change `status: 'draft'` to `'publish'` in `src/integrations.js`.
+
+**Test connection** (optional):
+```bash
+curl -X POST http://localhost:3000/webhooks/setup
+# (or just trigger a product/create webhook)
+```
+
+## Forwarding to Remote / Google-Hosted Websites
+
+Use the `EXTERNAL_WEBHOOK_URLS` variable to fan out every Shopify event to any number of HTTPS endpoints.
+
+This is perfect for:
+- Google Apps Script Web Apps
+- Google Cloud Functions / Cloud Run
+- Firebase
+- Your own remote Node/Python/PHP site
+- n8n, Make.com (Integromat), Zapier Catch Hooks, etc.
+
+### Setup
+```env
+EXTERNAL_WEBHOOK_URLS=https://script.google.com/macros/s/XXXXXXXXXXXXXXXX/exec,https://my-cloud-function.run.app/shopify-webhook
+```
+
+Every webhook (regardless of topic) will be `POST`ed as JSON to all listed URLs, with extra headers:
+- `X-Shopify-Topic`
+- `X-Shopify-Shop-Domain`
+- `X-Source: shopify-x-integration`
+
+Your remote endpoint just needs to accept `POST` with a JSON body.
+
+### Example: Google Apps Script Receiver (copy-paste ready)
+
+1. Go to https://script.google.com → New project
+2. Paste this code:
+
+```javascript
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const topic = e.parameter['X-Shopify-Topic'] || e.postData.headers?.['X-Shopify-Topic'] || 'unknown';
+
+  // Example: Log everything to a Google Sheet
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ShopifyEvents') 
+                || SpreadsheetApp.getActiveSpreadsheet().insertSheet('ShopifyEvents');
+  sheet.appendRow([new Date(), topic, JSON.stringify(data)]);
+
+  // Example actions:
+  if (topic === 'products/create') {
+    // Send yourself an email, update a site, create a Calendar event, etc.
+    GmailApp.sendEmail('you@gmail.com', 'New Shopify Product', 
+      `New product: ${data.title}\nPrice: ${data.variants?.[0]?.price}`);
+  }
+
+  if (topic === 'orders/create' || topic === 'orders/paid') {
+    // Forward to your internal system, update inventory in another tool, etc.
+  }
+
+  return ContentService.createTextOutput('OK').setMimeType(ContentService.MimeType.TEXT);
+}
+```
+
+3. Deploy → New deployment → Web app → Execute as "Me" → Who has access: "Anyone"
+4. Copy the `/exec` URL and put it in `EXTERNAL_WEBHOOK_URLS`
+5. Re-deploy after changes.
+
+This gives you a completely free, serverless Google-hosted receiver that can do almost anything.
+
+## More Webhook Topics
+
+The receiver already listens for any topic Shopify sends. Out of the box we react to:
+
+- `products/create` → Tweet + (optional) WordPress post + external
+- `orders/create` → Tweet + external
+- `products/update`, `orders/paid` → logged + forwarded to externals
+
+Add your own reactions easily in `src/server.js` inside the webhook handler.
 
 ## Manual Tweeting
 
@@ -137,7 +249,7 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 The original session listed:
 
 1. ✅ Complete Twitter posting (OAuth 1.0a full implementation) — **DONE**
-2. ✅ Webhooks for real-time new product/order triggers — **DONE**
+2. ✅ Webhooks for real-time new product/order triggers + WordPress + Google/external — **DONE**
 3. Frontend Dashboard (React/Vite + widgets)
 4. Cron jobs for daily summaries (recommend `node-cron` + summary tweets)
 5. ✅ Full README with setup instructions — **DONE**

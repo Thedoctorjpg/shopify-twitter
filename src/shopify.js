@@ -150,4 +150,27 @@ export async function getShopInfo() {
   }
 }
 
+/**
+ * Register the most common/ useful webhooks pointing at your public base URL.
+ * Call this from scripts or on controlled startup if desired.
+ * @param {string} baseUrl - e.g. https://myapp.example.com  (no trailing /webhooks)
+ */
+export async function setupCommonWebhooks(baseUrl) {
+  if (!baseUrl) throw new Error('baseUrl is required');
+
+  const webhookUrl = `${baseUrl.replace(/\/$/, '')}/webhooks`;
+  const topics = ['products/create', 'products/update', 'orders/create', 'orders/paid'];
+
+  const results = [];
+  for (const topic of topics) {
+    try {
+      const hook = await registerWebhook(topic, webhookUrl);
+      results.push({ topic, success: true, webhookId: hook?.id });
+    } catch (err) {
+      results.push({ topic, success: false, error: err.message });
+    }
+  }
+  return { webhookUrl, results };
+}
+
 export default shopify;

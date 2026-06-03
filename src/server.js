@@ -27,12 +27,14 @@ import {
   generateProductGrid, 
   generateActivityFeed 
 } from './widgets.js';
+import { dispatchExternalIntegrations } from './integrations.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET;
+const WEBHOOK_BASE_URL = (process.env.WEBHOOK_BASE_URL || '').replace(/\/$/, ''); // no trailing slash
 
 // CORS for frontend later
 app.use(cors({
@@ -66,7 +68,8 @@ app.get('/', (req, res) => {
       'POST /tweet-order',
       'POST /webhooks',
       'GET /dashboard',
-      'POST /webhooks/register'
+      'POST /webhooks/register',
+      'POST /webhooks/setup   (uses WEBHOOK_BASE_URL)'
     ]
   });
 });
@@ -175,27 +178,44 @@ app.post('/webhooks', async (req, res) => {
 
   logger.info(`Webhook received: ${topic}`, { shop: shopDomain, id: payload.id });
 
-  // React to events
-  try {
+  // IMPORTANT: Always respond to Shopify quickly (within 5s) or it will retry.
+  // We kick off all side effects (X, WordPress, external/Google, etc.) in parallel
+  // and use Promise.allSettled so one slow destination never blocks the ack.
+  res.status(200).send('OK');
+
+  // --- Side effects (non-blocking for the HTTP response) ---
+  (async () => {
+    const sideEffects = [];
+
+    // X / Twitter reactions
     if (topic === 'products/create') {
-      const tweetResult = await tweetNewProduct(payload);
-      logger.info('Auto-tweeted new product from webhook', { productId: payload.id, tweetResult });
-      // You could also save to DB here
+      sideEffects.push(
+        tweetNewProduct(payload)
+          .then(result => logger.info('Auto-tweeted new product', { productId: payload.id, result }))
+          .catch(err => logger.error('Tweet product failed', err))
+      );
     }
 
     if (topic === 'orders/create') {
-      const tweetResult = await tweetNewOrder(payload);
-      logger.info('Auto-tweeted new order from webhook', { orderId: payload.id, tweetResult });
+      sideEffects.push(
+        tweetNewOrder(payload)
+          .then(result => logger.info('Auto-tweeted new order', { orderId: payload.id, result }))
+          .catch(err => logger.error('Tweet order failed', err))
+      );
     }
 
-    // Add more topics as needed: 'orders/paid', 'products/update', etc.
-  } catch (err) {
-    logger.error('Error while processing webhook side-effects', err);
-    // Still return 200 to Shopify so it doesn't retry forever
-  }
+    // You can easily add more here:
+    // if (topic === 'orders/paid') { ... }
+    // if (topic === 'products/update') { ... }
 
-  // Always acknowledge quickly
-  res.status(200).send('OK');
+    // External integrations: WordPress + any Google-hosted / remote sites
+    sideEffects.push(
+      dispatchExternalIntegrations(topic, payload, shopDomain)
+        .catch(err => logger.error('External integrations dispatch failed', err))
+    );
+
+    await Promise.allSettled(sideEffects);
+  })();
 });
 
 // ---------- WEBHOOK MANAGEMENT (register from API) ----------
@@ -219,6 +239,42 @@ app.get('/webhooks', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to list webhooks' });
   }
+});
+
+/**
+ * One-shot setup for common webhooks using WEBHOOK_BASE_URL.
+ * POST /webhooks/setup  → registers the most useful topics pointing at your public URL.
+ */
+app.post('/webhooks/setup', async (req, res) => {
+  if (!WEBHOOK_BASE_URL) {
+    return res.status(400).json({ 
+      error: 'WEBHOOK_BASE_URL is not set in environment. Set it to your public HTTPS URL first.' 
+    });
+  }
+
+  const webhookUrl = `${WEBHOOK_BASE_URL}/webhooks`;
+  const topics = [
+    'products/create',
+    'products/update',
+    'orders/create',
+    'orders/paid',
+    // Add more topics you care about here
+  ];
+
+  const results = [];
+
+  for (const topic of topics) {
+    try {
+      const hook = await registerWebhook(topic, webhookUrl);
+      results.push({ topic, success: true, id: hook?.id });
+    } catch (err) {
+      const msg = err.response?.data?.errors || err.message;
+      results.push({ topic, success: false, error: msg });
+    }
+  }
+
+  logger.info('Webhook setup completed', { baseUrl: WEBHOOK_BASE_URL, results });
+  res.json({ success: true, baseUrl: WEBHOOK_BASE_URL, webhookUrl, results });
 });
 
 // ---------- SIMPLE SERVER-SIDE DASHBOARD (HTML) ----------
@@ -248,7 +304,7 @@ app.get('/dashboard', async (req, res) => {
         </head>
         <body>
           <h1>🛍️ Shopify + 𝕏 Dashboard</h1>
-          <p style="color:#666">Built with Grok • <a href="/products">/products</a> • <a href="/orders">/orders</a></p>
+          <p style="color:#666">Built with Grok • <a href="/products">/products</a> • <a href="/orders">/orders</a> • <a href="/webhooks">/webhooks</a></p>
 
           <div class="section">
             <div class="card">
@@ -270,7 +326,8 @@ app.get('/dashboard', async (req, res) => {
           </div>
 
           <footer style="margin-top:60px;color:#888;font-size:12px">
-            Auto-tweeting enabled for products/create & orders/create via webhooks.
+            Webhooks: X/Twitter • WordPress • External (Google Apps Script, Cloud, etc.)<br>
+            Use <code>POST /webhooks/setup</code> (when WEBHOOK_BASE_URL is set) or register manually.
           </footer>
         </body>
       </html>
@@ -296,9 +353,15 @@ if (isMainModule) {
   app.listen(PORT, () => {
     logger.info(`🚀 Grok-built Shopify+X server running on port ${PORT}`);
     logger.info(`   Dashboard: http://localhost:${PORT}/dashboard`);
-    logger.info(`   Webhook endpoint: POST http://localhost:${PORT}/webhooks`);
+    const effectiveWebhook = WEBHOOK_BASE_URL 
+      ? `${WEBHOOK_BASE_URL}/webhooks` 
+      : `http://localhost:${PORT}/webhooks (set WEBHOOK_BASE_URL for remote/production)`;
+    logger.info(`   Webhook endpoint: POST ${effectiveWebhook}`);
     if (!WEBHOOK_SECRET) {
       logger.warn('SHOPIFY_WEBHOOK_SECRET not set — webhooks will be rejected!');
+    }
+    if (WEBHOOK_BASE_URL) {
+      logger.info(`   Remote mode enabled. Use POST /webhooks/setup to register common topics.`);
     }
   });
 }
