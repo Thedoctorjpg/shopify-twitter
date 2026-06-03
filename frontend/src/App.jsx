@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState({ shopify: false, ebay: false, ali: false })
   const [message, setMessage] = useState('')
   const [searchTerms, setSearchTerms] = useState({ ebay: '', ali: '' })
+  const [generatedResults, setGeneratedResults] = useState([])
 
   const showMessage = (msg, isError = false) => {
     setMessage(msg)
@@ -123,6 +124,29 @@ function App() {
     }
   }
 
+  const generateAd = async (product, platform) => {
+    try {
+      const res = await fetch(`${API}/generate-product-ad`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          product: { 
+            title: product.title || product.product_title, 
+            image: product.images?.[0]?.src || product.image?.imageUrl || product.product_main_image_url,
+            ...product 
+          }, 
+          scenePrompt: `professional e-commerce ad for ${platform} product, high quality` 
+        })
+      })
+      const data = await res.json()
+      showMessage(`Generated ad with Imagine API!`)
+      // Store for display
+      setGeneratedResults(prev => [...prev, { platform, product: product.title, results: data.ads || data, timestamp: Date.now() }])
+    } catch (e) {
+      showMessage(`Ad generation failed: ${e.message}`, true)
+    }
+  }
+
   const ProductCard = ({ product, platform }) => {
     const title = product.title || product.product_title || 'Untitled'
     const price = product.price || product.variants?.[0]?.price || product.sale_price || '?'
@@ -145,6 +169,9 @@ function App() {
                 📥 Import to Shopify
               </button>
             )}
+            <button onClick={() => generateAd(product, platform)} className="imagine-btn">
+              ✨ Generate Ad
+            </button>
             <a href={url} target="_blank" rel="noopener" className="view-link">View →</a>
           </div>
         </div>
@@ -220,6 +247,58 @@ function App() {
           </div>
         </section>
       </div>
+
+      {/* Imagine Studio - xAI Grok Imagine integration */}
+      <section className="imagine-section">
+        <h2>✨ xAI Grok Imagine Studio</h2>
+        <p>Generate product ads, variations, edits, and videos using the Grok Imagine API. Results appear below and can be used for tweets or Shopify.</p>
+        
+        <div className="imagine-form">
+          <input 
+            type="text" 
+            placeholder="Prompt for new image or ad (e.g. modern product photo in luxury setting)" 
+            id="imagine-prompt"
+          />
+          <button onClick={() => {
+            const prompt = document.getElementById('imagine-prompt').value || 'professional product photo';
+            fetch(`${API}/generate-image`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt, n: 2, aspect_ratio: '16:9', resolution: '2k' })
+            }).then(r => r.json()).then(data => {
+              showMessage('Generated with Imagine!');
+              setGeneratedResults(prev => [...prev, { platform: 'Imagine', product: prompt, results: data.images, timestamp: Date.now() }]);
+            }).catch(e => showMessage('Generation failed', true));
+          }}>Generate Image</button>
+          <button onClick={triggerCron}>Trigger Daily Summary (with Imagine?)</button>
+        </div>
+
+        {generatedResults.length > 0 && (
+          <div className="generated-results">
+            <h3>Recent Generations</h3>
+            {generatedResults.slice().reverse().map((gen, idx) => (
+              <div key={idx} className="generated-item">
+                <strong>{gen.platform} - {gen.product}</strong>
+                <div className="result-images">
+                  {(Array.isArray(gen.results) ? gen.results : [gen.results]).slice(0, 3).map((img, i) => {
+                    const url = img?.url || (typeof img === 'string' ? img : '');
+                    return url ? <img key={i} src={url} alt="generated" style={{maxWidth: '200px', margin: '4px'}} /> : null;
+                  })}
+                </div>
+                <button onClick={() => {
+                  // Tweet the first generated
+                  const first = Array.isArray(gen.results) ? gen.results[0] : gen.results;
+                  if (first?.url) {
+                    // Simple: post a tweet with the image url via backend? For demo, alert
+                    showMessage('In real app: would call tweet with generated image URL');
+                    // Or fetch a custom tweet endpoint that supports image urls
+                  }
+                }}>Tweet this</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <footer>
         <p>Backend: <a href={`${API}/`} target="_blank">{API}</a> | Built with Grok | <button onClick={triggerCron}>Run daily cron now</button></p>

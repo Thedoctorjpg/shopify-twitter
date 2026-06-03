@@ -434,7 +434,8 @@ Current status (built with Grok):
 - ✅ Multi-platform tweeting (X) + daily cross-platform summary cron (scoring + email fallback)
 - ✅ Shopify webhooks + eBay Event Notifications (verified) + WordPress + arbitrary external forwards
 - ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader + GitHub Actions)
-- ✅ Frontend Dashboard (React/Vite - unified view + tweet/import buttons)
+- ✅ Frontend Dashboard (React/Vite - unified view + tweet/import + xAI Grok Imagine buttons for ads/variations)
+- ✅ xAI Grok Imagine API integration (image gen, product ad mockups, edits, video)
 - ✅ Excellent docs + prompt logs
 
 Run frontend: `npm run frontend` (after `cd frontend && npm install` if needed)

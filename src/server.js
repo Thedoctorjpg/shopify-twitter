@@ -43,6 +43,12 @@ import {
 } from './aliexpress.js';
 import { startCrons, triggerSummaryNow } from './cron.js';
 import { loadSecretsFromSSM } from './aws.js';
+import { 
+  generateImage, 
+  editImage, 
+  generateVideo, 
+  generateProductAd 
+} from './imagine.js';
 
 dotenv.config();
 
@@ -89,8 +95,9 @@ app.get('/', (req, res) => {
       'POST /webhooks/register',
       'POST /webhooks/setup',
       'POST /cron/trigger-summary   (manual daily cross-platform tweet)',
-      'POST /import/aliexpress-to-shopify',
-      'POST /ebay/webhooks   (eBay Event Notifications)'
+      'POST /import/to-shopify',
+      'POST /ebay/webhooks   (eBay Event Notifications)',
+      'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)'
     ]
   });
 });
@@ -337,6 +344,55 @@ app.post('/import/to-shopify', async (req, res) => {
   }
 });
 
+// ---------- xAI Grok Imagine API Integration (image/video gen, product ads, edits) ----------
+app.post('/generate-image', async (req, res) => {
+  try {
+    const { prompt, n = 1, aspect_ratio = '1:1', resolution = '1k', response_format = 'url' } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+    const images = await generateImage(prompt, { n, aspect_ratio, resolution, response_format });
+    res.json({ success: true, images, prompt });
+  } catch (err) {
+    res.status(500).json({ error: 'Image generation failed', details: err.message });
+  }
+});
+
+app.post('/edit-image', async (req, res) => {
+  try {
+    const { prompt, image_url, aspect_ratio = '1:1' } = req.body;
+    if (!prompt || !image_url) return res.status(400).json({ error: 'prompt and image_url are required' });
+
+    const result = await editImage(prompt, image_url, { aspect_ratio });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Image edit failed', details: err.message });
+  }
+});
+
+app.post('/generate-product-ad', async (req, res) => {
+  try {
+    const { product, scenePrompt } = req.body;
+    if (!product) return res.status(400).json({ error: 'product object required (title, image optional)' });
+
+    const ads = await generateProductAd(product, scenePrompt);
+    res.json({ success: true, ads });
+  } catch (err) {
+    res.status(500).json({ error: 'Product ad generation failed', details: err.message });
+  }
+});
+
+app.post('/generate-video', async (req, res) => {
+  try {
+    const { prompt, duration = 8, aspect_ratio = '16:9', image_url } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+    const video = await generateVideo(prompt, { duration, aspect_ratio, image_url });
+    res.json({ success: true, video });
+  } catch (err) {
+    res.status(500).json({ error: 'Video generation failed', details: err.message });
+  }
+});
+
 // Legacy alias for backward compat
 app.post('/import/aliexpress-to-shopify', (req, res) => {
   req.body.platform = 'aliexpress';
@@ -559,7 +615,7 @@ if (isMainModule) {
       ? `${WEBHOOK_BASE_URL}/webhooks` 
       : `http://localhost:${PORT}/webhooks (set WEBHOOK_BASE_URL for remote/production)`;
     logger.info(`   Webhook endpoint: POST ${effectiveWebhook}`);
-    logger.info(`   Multi-platform: Shopify + eBay + AliExpress → X/Twitter + WordPress + externals`);
+    logger.info(`   Multi-platform: Shopify + eBay + AliExpress → X/Twitter + WordPress + externals + xAI Imagine (images/videos)`);
     if (!WEBHOOK_SECRET) {
       logger.warn('SHOPIFY_WEBHOOK_SECRET not set — webhooks will be rejected!');
     }

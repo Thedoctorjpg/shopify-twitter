@@ -151,3 +151,47 @@ footer {
   padding: 16px;
 }
 footer button { font-size: 13px; padding: 4px 10px; }
+
+/* Imagine section */
+.imagine-section {
+  margin-top: 32px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.imagine-form {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.imagine-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+}
+
+.imagine-btn {
+  background: #f0f0ff;
+  border-color: #0066ff44;
+  font-size: 11px;
+}
+
+.generated-item {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+}
+
+.result-images {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
