@@ -18,6 +18,9 @@ fi
 
 docker build -t $SERVICE_NAME .
 
+echo "Ensuring ECR repository exists..."
+aws ecr describe-repositories --repository-names shopify-x-integration --region $REGION 2>/dev/null || aws ecr create-repository --repository-name shopify-x-integration --region $REGION --image-scanning-configuration scanOnPush=true
+
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REPO
 
 IMAGE_TAG="$ECR_REPO:latest"
