@@ -1,7 +1,7 @@
 /**
  * grocery.js
- * Grocery shopping & fast food integration for the multi-platform dashboard.
- * Supports: Walmart, Target, Pak N Save, Woolworths, Konbini (convenience), Jollibee, Fast Food.
+ * Grocery, fast food & delivery (Uber Eats/DoorDash) integration for the multi-platform dashboard.
+ * Supports: Walmart, Target, Pak N Save, Woolworths, Konbini (convenience), Jollibee, Fast Food, Uber Eats, DoorDash.
  *
  * Uses mock data for realism + xAI Imagine for generating product images/ads.
  * Allows tweeting deals, importing to Shopify, generating marketing creatives.
@@ -53,6 +53,18 @@ const STORE_PRODUCTS = {
     { id: 'ff-003', title: 'Pepperoni Pizza Large', price: '11.49', category: 'Pizza', image: null, store: 'Fast Food' },
     { id: 'ff-004', title: 'French Fries Large', price: '3.49', category: 'Sides', image: null, store: 'Fast Food' },
   ],
+  ubereats: [
+    { id: 'ue-001', title: 'McDonald\'s Big Mac Combo', price: '9.49', category: 'Fast Food Delivery', image: null, store: 'Uber Eats' },
+    { id: 'ue-002', title: 'Chipotle Burrito Bowl', price: '10.99', category: 'Mexican Delivery', image: null, store: 'Uber Eats' },
+    { id: 'ue-003', title: 'Whole Foods Grocery Delivery - Milk + Eggs Bundle', price: '12.50', category: 'Grocery Delivery', image: null, store: 'Uber Eats' },
+    { id: 'ue-004', title: 'Starbucks Latte + Muffin', price: '7.29', category: 'Coffee Delivery', image: null, store: 'Uber Eats' },
+  ],
+  doordash: [
+    { id: 'dd-001', title: 'Popeyes Chicken Sandwich Meal', price: '8.99', category: 'Fast Food Delivery', image: null, store: 'DoorDash' },
+    { id: 'dd-002', title: 'Panda Express Orange Chicken Combo', price: '9.79', category: 'Chinese Delivery', image: null, store: 'DoorDash' },
+    { id: 'dd-003', title: 'Instacart Grocery - Fresh Produce Box', price: '15.00', category: 'Grocery Delivery', image: null, store: 'DoorDash' },
+    { id: 'dd-004', title: 'Dunkin\' Donuts Coffee + Donuts', price: '6.49', category: 'Breakfast Delivery', image: null, store: 'DoorDash' },
+  ],
 };
 
 const ALL_STORES = Object.keys(STORE_PRODUCTS);
@@ -96,13 +108,20 @@ export function searchGroceryProducts(query, store = 'all', limit = 8) {
  * Format grocery item for tweeting / display
  */
 export function formatGroceryForTweet(item) {
+  const storeSlug = item.store.toLowerCase().replace(/\s+/g, '-');
+  let url = `https://example.com/${storeSlug}/product/${item.id}`;
+  if (item.store === 'Uber Eats') {
+    url = `https://www.ubereats.com/store/${storeSlug}/item/${item.id}`;
+  } else if (item.store === 'DoorDash') {
+    url = `https://www.doordash.com/store/${storeSlug}/item/${item.id}`;
+  }
   return {
     id: item.id,
     title: item.title,
     price: item.price,
     category: item.category,
     store: item.store,
-    url: `https://example.com/${item.store.toLowerCase().replace(/\s+/g, '-')}/product/${item.id}`, // mock
+    url,
     image: item.image,
   };
 }

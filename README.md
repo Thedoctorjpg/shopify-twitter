@@ -464,7 +464,7 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 - Grok text gen integrated for dynamic marketing/event copy (via xAI chat API).
 - See `src/twitter.js`, `src/grok.js`, `src/cron.js` and utils for generators.
 
-## Grocery & Fast Food Integration
+## Grocery, Fast Food & Delivery Integration
 
 New support for real-world grocery and QSR retailers:
 
@@ -474,10 +474,11 @@ New support for real-world grocery and QSR retailers:
 - Konbini (Japanese convenience stores)
 - Jollibee (Philippine fast food)
 - Fast Food (generic burgers, pizza, chicken)
+- Uber Eats, DoorDash (delivery platforms - popular meals + grocery delivery bundles)
 
 **Features**:
 - Backend: `GET /grocery/:store/products` (with search), `POST /tweet-grocery`, `/generate-grocery-ad` (via xAI Imagine), `/import/grocery-to-shopify`
-- Frontend: Dedicated "🛒 Grocery & Fast Food" section with store dropdown, search, product cards showing store, and full action buttons (Tweet, Import, Generate Ad, Marketing Tweet, Special Event).
+- Frontend: Dedicated "🛒 Grocery, Fast Food & Delivery" section with store dropdown (Walmart/Target/Pak N Save/Woolworths/Konbini/Jollibee/Fast Food/Uber Eats/DoorDash), search, product cards showing store, and full action buttons (Tweet, Import, Generate Ad, Marketing Tweet, Special Event).
 - Integrates seamlessly with Twitter marketing (Grok-generated copy + Imagine visuals), cron special events, and Shopify imports.
 - Great for cross-retail deal promotion, weekly grocery tweets, fast food campaigns.
 
@@ -494,7 +495,7 @@ Current status (built with Grok):
 - ✅ Frontend Dashboard (React/Vite - unified view + tweet/import + xAI Grok Imagine + Twitter Marketing Hub)
 - ✅ xAI Grok Imagine API integration (image gen, product ad mockups, edits, video)
 - ✅ Enhanced X/Twitter: Marketing integration, Ads support (metrics + full promote), Special events (Chinese New Year, Valentines, Mother's, Father's, Halloween, EOFY, Singles Day, etc.) + cron wiring, Grok text copy gen
-- ✅ Grocery & Fast Food: Walmart, Target, Pak N Save, Woolworths, Konbini, Jollibee, Fast Food – product search, tweets, Imagine ads, import to Shopify
+- ✅ Grocery, Fast Food & Delivery: Walmart, Target, Pak N Save, Woolworths, Konbini, Jollibee, Fast Food, Uber Eats, DoorDash – product search, tweets, Imagine ads, import to Shopify
 - ✅ Excellent docs + prompt logs
 
 Run frontend: `npm run frontend` (after `cd frontend && npm install` if needed)

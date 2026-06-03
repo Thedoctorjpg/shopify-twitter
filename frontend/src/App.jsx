@@ -325,7 +325,7 @@ function App() {
     <div className="dashboard">
       <header>
         <h1>🛍️ Multi-Platform Dashboard</h1>
-        <p>Shopify + eBay + AliExpress + Grocery/Fast Food (Walmart/Target/etc) → X (Twitter) + Imports</p>
+        <p>Shopify + eBay + AliExpress + Grocery/Fast Food/Delivery (Walmart/Target/Uber Eats/DoorDash/etc) → X (Twitter) + Imports</p>
         <div className="header-actions">
           <button onClick={refreshAll} disabled={Object.values(loading).some(Boolean)}>🔄 Refresh All</button>
           <button onClick={triggerCron} className="primary">📅 Trigger Daily Summary</button>
@@ -392,7 +392,7 @@ function App() {
         {/* Grocery & Fast Food */}
         <section className="platform-section">
           <div className="section-header">
-            <h2>🛒 Grocery & Fast Food</h2>
+            <h2>🛒 Grocery, Fast Food & Delivery</h2>
             <select 
               value={selectedGroceryStore} 
               onChange={e => { setSelectedGroceryStore(e.target.value); fetchGrocery(e.target.value, searchTerms.grocery); }}
@@ -406,9 +406,11 @@ function App() {
               <option value="konbini">Konbini</option>
               <option value="jollibee">Jollibee</option>
               <option value="fastfood">Fast Food</option>
+              <option value="ubereats">Uber Eats</option>
+              <option value="doordash">DoorDash</option>
             </select>
             <input 
-              placeholder="Search groceries..." 
+              placeholder="Search groceries or delivery..." 
               value={searchTerms.grocery} 
               onChange={e => setSearchTerms(s => ({...s, grocery: e.target.value}))}
               onKeyDown={e => e.key === 'Enter' && handleGrocerySearch()}

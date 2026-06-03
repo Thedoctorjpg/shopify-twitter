@@ -1,6 +1,6 @@
 /**
  * server.js
- * Main Express server for Shopify + X integration.
+ * Main Express server for Shopify + X + multi-retail (grocery/fast food/delivery) integration.
  * - REST endpoints for products/orders
  * - Webhook receiver with Shopify HMAC verification
  * - Auto-tweet on product/order creation (configurable)
@@ -111,7 +111,7 @@ app.get('/', (req, res) => {
       'POST /ebay/webhooks   (eBay Event Notifications)',
       'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)',
       'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access, /promote-tweet',
-      'GET /grocery/:store/products, POST /tweet-grocery, /generate-grocery-ad, /import/grocery-to-shopify'
+      'GET /grocery/:store/products (incl. Uber Eats/DoorDash), POST /tweet-grocery, /generate-grocery-ad, /import/grocery-to-shopify'
     ]
   });
 });
@@ -763,7 +763,7 @@ if (isMainModule) {
       ? `${WEBHOOK_BASE_URL}/webhooks` 
       : `http://localhost:${PORT}/webhooks (set WEBHOOK_BASE_URL for remote/production)`;
     logger.info(`   Webhook endpoint: POST ${effectiveWebhook}`);
-    logger.info(`   Multi-platform: Shopify + eBay + AliExpress + Grocery (Walmart/Target/etc) + Fast Food → X/Twitter (marketing/ads/events) + WordPress + externals + xAI Imagine`);
+    logger.info(`   Multi-platform: Shopify + eBay + AliExpress + Grocery/Fast Food/Delivery (Walmart/Target/Uber Eats/DoorDash/etc) → X/Twitter (marketing/ads/events) + WordPress + externals + xAI Imagine`);
     if (!WEBHOOK_SECRET) {
       logger.warn('SHOPIFY_WEBHOOK_SECRET not set — webhooks will be rejected!');
     }
