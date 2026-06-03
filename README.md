@@ -286,6 +286,17 @@ See `src/aws.js`.
 
 **Important for production**: Set `WEBHOOK_BASE_URL` (and `AWS_WEBHOOK_BASE_URL`) to your public App Runner URL so webhooks and crons know the correct address.
 
+### Troubleshooting "Deploy to AWS App Runner: All jobs have failed"
+- The GitHub Action typically fails fast on:
+  - Missing or invalid GitHub secrets (AWS_ACCESS_KEY_ID etc.). Go to repo Settings > Secrets and variables > Actions and add them. The key needs permissions for ECR (ecr:*) and App Runner.
+  - App Runner service not pre-created in the AWS account/region (the update-service fails). Create it first in the AWS Console (App Runner > Create service), using either GitHub source (easiest) or the ECR image after a manual push.
+  - ECR repository not existing (docker push fails). The workflow now auto-creates it.
+  - IAM policy too restrictive on the AWS key.
+- Check the full logs in the GitHub Actions run for the exact failing step and error message.
+- For first-time or simplest: Use GitHub source in the App Runner console (it will auto-build the Dockerfile on pushes, no ECR needed). The GitHub Action is optional for container updates.
+- After any deploy, always configure the environment variables in the App Runner service (or use the SSM loader) and set WEBHOOK_BASE_URL to the public URL.
+- Test locally first: `npm run build:frontend && node src/server.js` then visit http://localhost:3000 .
+
 ## eBay Integration
 
 ### Setup

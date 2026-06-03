@@ -22,6 +22,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Ensure ECR repository exists
+        run: |
+          REGION="${{ secrets.AWS_REGION || 'us-west-2' }}"
+          aws ecr describe-repositories --repository-names shopify-x-integration --region $REGION || \
+          aws ecr create-repository --repository-name shopify-x-integration --region $REGION --image-scanning-configuration scanOnPush=true || true
+
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}

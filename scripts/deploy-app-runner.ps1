@@ -21,7 +21,10 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "🚀 Deploying to AWS App Runner: $ServiceName in $Region" -ForegroundColor Green
 
-if ($FromGitHub) {
+if ($FromGitHub -or -not $EcrRepo) {
+    if (-not $FromGitHub) {
+        Write-Host "No -EcrRepo provided. Defaulting to GitHub source (recommended for App Runner). Make sure repo is public or connected." -ForegroundColor Yellow
+    }
     Write-Host "Using GitHub as source (recommended for App Runner). Make sure repo is public or connected."
     # For GitHub source, you usually create via console or use AWS Copilot / CDK.
     # This script shows the update command if service already exists.
@@ -34,13 +37,12 @@ if ($FromGitHub) {
     exit 0
 }
 
-if (-not $EcrRepo) {
-    Write-Error "For container deploys, pass -EcrRepo your-account.dkr.ecr.$Region.amazonaws.com/shopify-x-integration"
-}
-
 # Build and push to ECR
 Write-Host "Building Docker image..."
 docker build -t $ServiceName .
+
+Write-Host "Ensuring ECR repository exists..."
+aws ecr describe-repositories --repository-names shopify-x-integration --region $Region 2>$null || aws ecr create-repository --repository-name shopify-x-integration --region $Region --image-scanning-configuration scanOnPush=true
 
 Write-Host "Logging into ECR..."
 aws ecr get-login-password --region $Region | docker login --username AWS --password-stdin $EcrRepo
