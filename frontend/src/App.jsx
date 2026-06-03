@@ -11,6 +11,8 @@ function App() {
   const [message, setMessage] = useState('')
   const [searchTerms, setSearchTerms] = useState({ ebay: '', ali: '' })
   const [generatedResults, setGeneratedResults] = useState([])
+  const [twitterMetrics, setTwitterMetrics] = useState(null)
+  const [adsAccess, setAdsAccess] = useState(null)
 
   const showMessage = (msg, isError = false) => {
     setMessage(msg)
@@ -147,6 +149,59 @@ function App() {
     }
   }
 
+  const postMarketingTweet = async (product, platform) => {
+    try {
+      const res = await fetch(`${API}/tweet-marketing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          item: { ...product, platform },
+          options: { platform, campaign: 'product_marketing', adScene: 'eye-catching marketing visual' }
+        })
+      })
+      const data = await res.json()
+      showMessage(`Marketing tweet posted! ${data.result?.mock ? '(mock)' : ''}`)
+    } catch (e) {
+      showMessage(`Marketing tweet failed: ${e.message}`, true)
+    }
+  }
+
+  const postSpecialEvent = async (eventName, product, platform) => {
+    try {
+      const res = await fetch(`${API}/tweet-special-event`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventName, item: { ...product, platform } })
+      })
+      const data = await res.json()
+      showMessage(`Special event tweet posted for ${eventName}!`)
+    } catch (e) {
+      showMessage(`Event tweet failed: ${e.message}`, true)
+    }
+  }
+
+  const fetchTweetMetrics = async (tweetId) => {
+    if (!tweetId) return
+    try {
+      const res = await fetch(`${API}/tweet-metrics/${tweetId}`)
+      const data = await res.json()
+      setTwitterMetrics(data)
+      showMessage('Metrics loaded')
+    } catch (e) {
+      showMessage('Failed to load metrics', true)
+    }
+  }
+
+  const checkTwitterAds = async () => {
+    try {
+      const res = await fetch(`${API}/twitter/ads-access`)
+      const data = await res.json()
+      setAdsAccess(data)
+    } catch (e) {
+      showMessage('Failed to check ads access', true)
+    }
+  }
+
   const ProductCard = ({ product, platform }) => {
     const title = product.title || product.product_title || 'Untitled'
     const price = product.price || product.variants?.[0]?.price || product.sale_price || '?'
@@ -171,6 +226,12 @@ function App() {
             )}
             <button onClick={() => generateAd(product, platform)} className="imagine-btn">
               ✨ Generate Ad
+            </button>
+            <button onClick={() => postMarketingTweet(product, platform)} className="marketing-btn">
+              📈 Marketing Tweet
+            </button>
+            <button onClick={() => postSpecialEvent('Flash Sale', product, platform)} className="event-btn">
+              🎉 Special Event
             </button>
             <a href={url} target="_blank" rel="noopener" className="view-link">View →</a>
           </div>
@@ -298,6 +359,29 @@ function App() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Twitter Marketing, Ads & Events */}
+      <section className="twitter-section">
+        <h2>🐦 X/Twitter Marketing Hub</h2>
+        <div className="twitter-controls">
+          <button onClick={checkTwitterAds}>Check Ads Access</button>
+          {adsAccess && <span>Ads: {adsAccess.hasAdsAccess ? '✅' : '❌'} {adsAccess.note || ''}</span>}
+
+          <div style={{marginTop: '10px'}}>
+            <input placeholder="Tweet ID for metrics" id="metrics-id" style={{padding: '6px', marginRight: '8px'}} />
+            <button onClick={() => {
+              const id = document.getElementById('metrics-id').value;
+              if (id) fetchTweetMetrics(id);
+            }}>Get Metrics</button>
+            {twitterMetrics && <pre style={{fontSize: '12px', background: '#f5f5f5', padding: '8px'}}>{JSON.stringify(twitterMetrics, null, 2)}</pre>}
+          </div>
+
+          <div style={{marginTop: '10px'}}>
+            <button onClick={() => postSpecialEvent('Black Friday', {title: 'Huge Savings', price: '50'}, 'Shopify')}>Simulate Black Friday Tweet</button>
+            <button onClick={() => postMarketingTweet({title: 'New Collection Drop', price: '99'}, 'eBay')}>Test Marketing Tweet</button>
+          </div>
+        </div>
       </section>
 
       <footer>

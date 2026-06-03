@@ -159,3 +159,69 @@ export function generateOrderTweet(order) {
   tweet += `\n\n#Shopify #Ecommerce`;
   return truncateForTwitter(tweet);
 }
+
+/**
+ * Add UTM parameters to URL for marketing tracking
+ */
+export function addUTM(url, { source = 'twitter', medium = 'social', campaign = 'product_launch' } = {}) {
+  if (!url) return '';
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaign}`;
+}
+
+/**
+ * Generate a marketing-focused tweet (promotions, campaigns, ads)
+ */
+export function generateMarketingTweet(item, options = {}) {
+  const p = item.formatted || formatProductForTweet(item) || item;
+  const platform = options.platform || p.platform || 'Shopify';
+  let tweet = options.customText || `🚀 Limited time offer on ${p.title || 'this amazing item'}!`;
+
+  if (p.price) tweet += ` Starting at $${p.price}.`;
+  if (p.url) {
+    const utmUrl = addUTM(p.url, {
+      source: options.source || 'twitter',
+      medium: options.medium || 'social',
+      campaign: options.campaign || 'marketing_campaign'
+    });
+    tweet += `\n\nShop now: ${utmUrl}`;
+  }
+
+  const hashtags = options.hashtags || `#${platform} #Deals #Marketing`;
+  tweet += `\n\n${hashtags}`;
+
+  if (options.callToAction) tweet += `\n\n${options.callToAction}`;
+
+  return truncateForTwitter(tweet);
+}
+
+/**
+ * Generate tweet for special events (holidays, launches, sales events)
+ */
+export function generateSpecialEventTweet(eventName, item, options = {}) {
+  const p = item.formatted || formatProductForTweet(item) || item;
+  let tweet = `🎉 ${eventName} Special: ${p.title || 'Exclusive deal'}!`;
+
+  if (p.price) tweet += ` Just $${p.price}!`;
+  if (p.url) {
+    const utmUrl = addUTM(p.url, { campaign: eventName.toLowerCase().replace(/\s+/g, '_') });
+    tweet += `\n\n${utmUrl}`;
+  }
+
+  tweet += `\n\n#${eventName.replace(/\s+/g, '')} #SpecialEvent`;
+  if (options.platform) tweet += ` #${options.platform}`;
+
+  return truncateForTwitter(tweet);
+}
+
+/**
+ * Suggest hashtags based on content/platform
+ */
+export function suggestHashtags(item, platform = 'general') {
+  const base = ['#Deals', '#Shopping'];
+  if (platform.toLowerCase().includes('shopify')) base.push('#Shopify');
+  if (platform.toLowerCase().includes('ebay')) base.push('#eBay');
+  if (platform.toLowerCase().includes('aliexpress')) base.push('#AliExpress');
+  if (item.tags) base.push(...item.tags.split(',').map(t => `#${t.trim()}`));
+  return [...new Set(base)].slice(0, 5).join(' ');
+}

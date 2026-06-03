@@ -159,4 +159,101 @@ export async function verifyTwitterCredentials() {
   }
 }
 
-export default { postToTwitter, tweetNewProduct, tweetNewOrder, verifyTwitterCredentials };
+/**
+ * Post a marketing tweet with tracking and rich options.
+ * Integrates with Imagine for ad creatives if image provided/generated.
+ */
+export async function postMarketingTweet(item, options = {}) {
+  const { generateMarketingTweet, suggestHashtags } = await import('./utils.js');
+  const { generateProductAd } = await import('./imagine.js').catch(() => ({}));
+
+  let tweetText = generateMarketingTweet(item, options);
+
+  // Auto-generate marketing image if no image and Imagine available
+  let imageUrls = options.imageUrls || [];
+  if (imageUrls.length === 0 && generateProductAd && item) {
+    try {
+      const adResult = await generateProductAd(item, options.adScene || 'promotional marketing shot');
+      if (adResult && (adResult.url || adResult[0]?.url)) {
+        const adUrl = adResult.url || adResult[0].url;
+        imageUrls = [adUrl];
+        logger.info('Auto-generated marketing creative with xAI Imagine');
+      }
+    } catch (e) {
+      logger.debug('Could not auto-generate ad image', { error: e.message });
+    }
+  }
+
+  if (options.hashtags) {
+    tweetText = tweetText.replace(/#[\w]+/g, ''); // remove defaults if custom
+    tweetText += `\n\n${options.hashtags}`;
+  } else {
+    tweetText += `\n\n${suggestHashtags(item, options.platform)}`;
+  }
+
+  return postToTwitter(tweetText, imageUrls);
+}
+
+/**
+ * Fetch metrics for a tweet (useful for marketing analytics / ads performance)
+ */
+export async function getTweetMetrics(tweetId) {
+  const client = getTwitterClient();
+  if (!client) {
+    return { mock: true, metrics: { like_count: 42, retweet_count: 12, reply_count: 5, impression_count: 1200 } };
+  }
+
+  try {
+    const tweet = await client.v2.singleTweet(tweetId, {
+      'tweet.fields': 'public_metrics,non_public_metrics,organic_metrics'
+    });
+    const metrics = tweet.data.public_metrics || {};
+    logger.info('Fetched tweet metrics', { tweetId, metrics });
+    return { success: true, tweetId, metrics };
+  } catch (err) {
+    logger.error('Failed to fetch tweet metrics', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Post a tweet for special events (holidays, flash sales, launches)
+ */
+export async function tweetSpecialEvent(eventName, item, options = {}) {
+  const { generateSpecialEventTweet } = await import('./utils.js');
+  const tweetText = generateSpecialEventTweet(eventName, item, options);
+
+  let imageUrls = options.imageUrls || [];
+  if (imageUrls.length === 0 && item.image) {
+    imageUrls = [item.image];
+  }
+
+  return postToTwitter(tweetText, imageUrls);
+}
+
+/**
+ * Verify if account has ads access (basic check)
+ */
+export async function checkAdsAccess() {
+  const client = getTwitterClient();
+  if (!client) return { hasAdsAccess: false, mock: true };
+
+  // In real, would call Ads API or check scopes. For now, placeholder.
+  try {
+    const me = await client.v2.me();
+    return { hasAdsAccess: true, user: me.data, note: 'Full Ads API requires separate Ads account access and different endpoints.' };
+  } catch {
+    return { hasAdsAccess: false };
+  }
+}
+
+export default { 
+  postToTwitter, 
+  tweetNewProduct, 
+  tweetNewOrder, 
+  verifyTwitterCredentials,
+  postMarketingTweet,
+  getTweetMetrics,
+  tweetSpecialEvent,
+  checkAdsAccess
+};

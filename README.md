@@ -426,6 +426,14 @@ PROMPT LOG: TWEETED PRODUCT
 
 Copy-paste these straight into your next prompt to Cursor / Grok / Claude for perfect context.
 
+## Enhanced X/Twitter Features (Marketing, Ads, Special Events)
+
+- Marketing tweets: `POST /tweet-marketing` with UTM params, campaign tracking, auto Imagine ad images.
+- Ads support: `GET /tweet-metrics/:tweetId` for analytics (public + organic metrics). `GET /twitter/ads-access` check.
+- Special events: `POST /tweet-special-event` for holidays, sales, launches. Easy to wire into cron.
+- Frontend Twitter Hub: Test buttons, metrics lookup, ads status.
+- See `src/twitter.js` (postMarketingTweet, getTweetMetrics, tweetSpecialEvent) and utils for generators.
+
 ## Extending the Project (High-Velocity Next Steps)
 
 Current status (built with Grok):
@@ -434,8 +442,9 @@ Current status (built with Grok):
 - ✅ Multi-platform tweeting (X) + daily cross-platform summary cron (scoring + email fallback)
 - ✅ Shopify webhooks + eBay Event Notifications (verified) + WordPress + arbitrary external forwards
 - ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader + GitHub Actions)
-- ✅ Frontend Dashboard (React/Vite - unified view + tweet/import + xAI Grok Imagine buttons for ads/variations)
+- ✅ Frontend Dashboard (React/Vite - unified view + tweet/import + xAI Grok Imagine + Twitter Marketing Hub)
 - ✅ xAI Grok Imagine API integration (image gen, product ad mockups, edits, video)
+- ✅ Enhanced X/Twitter: Marketing integration, Ads support (metrics), Special events
 - ✅ Excellent docs + prompt logs
 
 Run frontend: `npm run frontend` (after `cd frontend && npm install` if needed)

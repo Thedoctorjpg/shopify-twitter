@@ -22,7 +22,10 @@
     "webhooks",
     "cron",
     "ecommerce",
-    "aws"
+    "aws",
+    "marketing",
+    "ads",
+    "events"
   ],
   "author": "Built with Grok",
   "license": "MIT",

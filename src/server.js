@@ -13,7 +13,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { resolve } from 'path';
 import { getProducts, getOrders, getProductById, getOrderById, registerWebhook, listWebhooks, createProduct, importToShopifyFromExternal } from './shopify.js';
-import { postToTwitter, tweetNewProduct, tweetNewOrder } from './twitter.js';
+import { postToTwitter, tweetNewProduct, tweetNewOrder, postMarketingTweet, getTweetMetrics, tweetSpecialEvent, checkAdsAccess } from './twitter.js';
 import { 
   logger, 
   verifyShopifyWebhook, 
@@ -97,7 +97,8 @@ app.get('/', (req, res) => {
       'POST /cron/trigger-summary   (manual daily cross-platform tweet)',
       'POST /import/to-shopify',
       'POST /ebay/webhooks   (eBay Event Notifications)',
-      'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)'
+      'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)',
+      'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access'
     ]
   });
 });
@@ -393,6 +394,45 @@ app.post('/generate-video', async (req, res) => {
   }
 });
 
+// ---------- Enhanced Twitter/X Marketing, Ads, Special Events ----------
+app.post('/tweet-marketing', async (req, res) => {
+  try {
+    const { item, options } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const result = await postMarketingTweet(item, options || {});
+    logger.promptLog('MARKETING TWEET', { item, options, result });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Marketing tweet failed', details: err.message });
+  }
+});
+
+app.get('/tweet-metrics/:tweetId', async (req, res) => {
+  try {
+    const metrics = await getTweetMetrics(req.params.tweetId);
+    res.json(metrics);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get metrics' });
+  }
+});
+
+app.post('/tweet-special-event', async (req, res) => {
+  try {
+    const { eventName, item, options } = req.body;
+    if (!eventName || !item) return res.status(400).json({ error: 'eventName and item required' });
+    const result = await tweetSpecialEvent(eventName, item, options || {});
+    logger.promptLog('SPECIAL EVENT TWEET', { eventName, result });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Special event tweet failed' });
+  }
+});
+
+app.get('/twitter/ads-access', async (req, res) => {
+  const access = await checkAdsAccess();
+  res.json(access);
+});
+
 // Legacy alias for backward compat
 app.post('/import/aliexpress-to-shopify', (req, res) => {
   req.body.platform = 'aliexpress';
@@ -615,7 +655,7 @@ if (isMainModule) {
       ? `${WEBHOOK_BASE_URL}/webhooks` 
       : `http://localhost:${PORT}/webhooks (set WEBHOOK_BASE_URL for remote/production)`;
     logger.info(`   Webhook endpoint: POST ${effectiveWebhook}`);
-    logger.info(`   Multi-platform: Shopify + eBay + AliExpress → X/Twitter + WordPress + externals + xAI Imagine (images/videos)`);
+    logger.info(`   Multi-platform: Shopify + eBay + AliExpress → X/Twitter (marketing/ads/events) + WordPress + externals + xAI Imagine`);
     if (!WEBHOOK_SECRET) {
       logger.warn('SHOPIFY_WEBHOOK_SECRET not set — webhooks will be rejected!');
     }
