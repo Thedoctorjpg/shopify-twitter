@@ -28,6 +28,19 @@ import {
   generateActivityFeed 
 } from './widgets.js';
 import { dispatchExternalIntegrations } from './integrations.js';
+import { 
+  getEbayProducts, 
+  getEbayOrders, 
+  tweetEbayProduct, 
+  verifyEbayWebhook,
+  formatEbayProductForTweet 
+} from './ebay.js';
+import { 
+  searchAliExpressProducts, 
+  getAliExpressProduct, 
+  tweetAliExpressProduct, 
+  formatAliExpressProduct 
+} from './aliexpress.js';
 
 dotenv.config();
 
@@ -61,15 +74,14 @@ app.get('/', (req, res) => {
     status: 'running',
     builtWith: 'Grok',
     endpoints: [
-      'GET /products',
-      'GET /products/:id',
-      'GET /orders',
-      'POST /tweet-product',
-      'POST /tweet-order',
+      'GET /products', 'GET /orders',
+      'POST /tweet-product', 'POST /tweet-order',
+      'GET /ebay/products', 'POST /tweet-ebay-product',
+      'GET /aliexpress/search', 'POST /tweet-aliexpress-product',
       'POST /webhooks',
       'GET /dashboard',
       'POST /webhooks/register',
-      'POST /webhooks/setup   (uses WEBHOOK_BASE_URL)'
+      'POST /webhooks/setup'
     ]
   });
 });
@@ -150,6 +162,76 @@ app.post('/tweet-order', async (req, res) => {
   } catch (err) {
     logger.error('tweet-order failed', err);
     res.status(500).json({ error: 'Failed to tweet order' });
+  }
+});
+
+// ---------- eBay Routes ----------
+app.get('/ebay/products', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 12, 50);
+    const q = req.query.q;
+    const products = await getEbayProducts({ limit, q });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch eBay products' });
+  }
+});
+
+app.post('/tweet-ebay-product', async (req, res) => {
+  try {
+    const { itemId, customText, item } = req.body;
+    let ebayItem = item;
+
+    if (!ebayItem && itemId) {
+      // Try to fetch it first (basic implementation may need enhancement)
+      const items = await getEbayProducts({ limit: 1, q: itemId });
+      ebayItem = items[0];
+    }
+    if (!ebayItem) return res.status(400).json({ error: 'item or itemId required' });
+
+    const result = customText 
+      ? await postToTwitter(customText) 
+      : await tweetEbayProduct(ebayItem);
+
+    logger.promptLog('TWEETED EBAY PRODUCT', { item: formatEbayProductForTweet(ebayItem), result });
+    res.json({ status: 'tweeted', result });
+  } catch (err) {
+    logger.error('tweet-ebay-product failed', err);
+    res.status(500).json({ error: 'Failed to tweet eBay product' });
+  }
+});
+
+// ---------- AliExpress Routes ----------
+app.get('/aliexpress/search', async (req, res) => {
+  try {
+    const keywords = req.query.q || req.query.keywords || 'wireless earbuds';
+    const limit = Math.min(parseInt(req.query.limit) || 10, 20);
+    const products = await searchAliExpressProducts(keywords, { limit });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'AliExpress search failed (check your Alibaba keys)' });
+  }
+});
+
+app.post('/tweet-aliexpress-product', async (req, res) => {
+  try {
+    const { itemId, keywords, item } = req.body;
+    let product = item;
+
+    if (!product && itemId) {
+      product = await getAliExpressProduct(itemId);
+    } else if (!product && keywords) {
+      const results = await searchAliExpressProducts(keywords, { limit: 1 });
+      product = results[0];
+    }
+    if (!product) return res.status(400).json({ error: 'item, itemId, or keywords required' });
+
+    const result = await tweetAliExpressProduct(product);
+    logger.promptLog('TWEETED ALIEXPRESS PRODUCT', { product: formatAliExpressProduct(product), result });
+    res.json({ status: 'tweeted', result });
+  } catch (err) {
+    logger.error('tweet-aliexpress failed', err);
+    res.status(500).json({ error: 'Failed to tweet AliExpress product' });
   }
 });
 
@@ -357,6 +439,7 @@ if (isMainModule) {
       ? `${WEBHOOK_BASE_URL}/webhooks` 
       : `http://localhost:${PORT}/webhooks (set WEBHOOK_BASE_URL for remote/production)`;
     logger.info(`   Webhook endpoint: POST ${effectiveWebhook}`);
+    logger.info(`   Multi-platform: Shopify + eBay + AliExpress → X/Twitter + WordPress + externals`);
     if (!WEBHOOK_SECRET) {
       logger.warn('SHOPIFY_WEBHOOK_SECRET not set — webhooks will be rejected!');
     }
