@@ -7,9 +7,11 @@ function App() {
   const [shopifyProducts, setShopifyProducts] = useState([])
   const [ebayProducts, setEbayProducts] = useState([])
   const [aliProducts, setAliProducts] = useState([])
-  const [loading, setLoading] = useState({ shopify: false, ebay: false, ali: false })
+  const [groceryProducts, setGroceryProducts] = useState([])
+  const [loading, setLoading] = useState({ shopify: false, ebay: false, ali: false, grocery: false })
   const [message, setMessage] = useState('')
-  const [searchTerms, setSearchTerms] = useState({ ebay: '', ali: '' })
+  const [searchTerms, setSearchTerms] = useState({ ebay: '', ali: '', grocery: '' })
+  const [selectedGroceryStore, setSelectedGroceryStore] = useState('all')
   const [generatedResults, setGeneratedResults] = useState([])
   const [twitterMetrics, setTwitterMetrics] = useState(null)
   const [adsAccess, setAdsAccess] = useState(null)
@@ -61,10 +63,12 @@ function App() {
     fetchShopify()
     fetchEbay(searchTerms.ebay)
     fetchAli(searchTerms.ali)
+    fetchGrocery(selectedGroceryStore, searchTerms.grocery)
   }
 
   useEffect(() => {
     refreshAll()
+    fetchGrocery('all')
   }, [])
 
   const tweetProduct = async (platform, item, customText = null) => {
@@ -202,35 +206,112 @@ function App() {
     }
   }
 
+  const postGroceryTweet = async (product) => {
+    try {
+      const res = await fetch(`${API}/tweet-grocery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: product, options: { platform: product.store } })
+      })
+      const data = await res.json()
+      showMessage(`Grocery tweet posted! ${data.result?.mock ? '(mock)' : ''}`)
+    } catch (e) {
+      showMessage(`Grocery tweet failed: ${e.message}`, true)
+    }
+  }
+
+  const generateGroceryAd = async (product) => {
+    try {
+      const res = await fetch(`${API}/generate-grocery-ad`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          item: product, 
+          scenePrompt: `appetizing grocery ad for ${product.store}, high quality food photography` 
+        })
+      })
+      const data = await res.json()
+      showMessage(`Generated grocery ad with Imagine!`)
+      setGeneratedResults(prev => [...prev, { platform: product.store, product: product.title, results: data.ads || data, timestamp: Date.now() }])
+    } catch (e) {
+      showMessage(`Grocery ad generation failed: ${e.message}`, true)
+    }
+  }
+
+  const importGroceryToShopify = async (product) => {
+    try {
+      const res = await fetch(`${API}/import/grocery-to-shopify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: product })
+      })
+      const data = await res.json()
+      showMessage(`Imported ${product.store} item to Shopify draft!`)
+    } catch (e) {
+      showMessage(`Grocery import failed: ${e.message}`, true)
+    }
+  }
+
+  const fetchGrocery = async (store = 'all', q = '') => {
+    setLoading(l => ({ ...l, grocery: true }))
+    try {
+      let url = `${API}/grocery/${store}/products?limit=8`
+      if (q) url += `&q=${encodeURIComponent(q)}`
+      const res = await fetch(url)
+      const data = await res.json()
+      setGroceryProducts(data)
+    } catch (e) {
+      showMessage('Failed to load grocery products', true)
+    }
+    setLoading(l => ({ ...l, grocery: false }))
+  }
+
+  const handleGrocerySearch = () => {
+    fetchGrocery(selectedGroceryStore, searchTerms.grocery)
+  }
+
   const ProductCard = ({ product, platform }) => {
     const title = product.title || product.product_title || 'Untitled'
     const price = product.price || product.variants?.[0]?.price || product.sale_price || '?'
     const img = product.images?.[0]?.src || product.image?.imageUrl || product.product_main_image_url || product.thumbnailImages?.[0]?.imageUrl || 'https://via.placeholder.com/120'
     const url = product.url || product.itemWebUrl || product.product_detail_url || '#'
+    const isGrocery = !!product.store || platform.toLowerCase().includes('grocery') || platform.toLowerCase().includes('fast') || ['Walmart','Target','Pak N Save','Woolworths','Konbini','Jollibee','Fast Food'].includes(platform)
 
     return (
       <div className="product-card">
         <img src={img} alt={title} className="product-img" />
         <div className="product-info">
-          <div className="product-platform">{platform}</div>
+          <div className="product-platform">{platform}{product.store && product.store !== platform ? ` (${product.store})` : ''}</div>
           <h4>{title.substring(0, 60)}{title.length > 60 ? '...' : ''}</h4>
           <div className="product-price">${price}</div>
           <div className="product-actions">
-            <button onClick={() => tweetProduct(platform.toLowerCase().replace('express', ''), product)}>
+            <button onClick={() => tweetProduct(platform.toLowerCase().replace('express', '').replace('grocery', ''), product)}>
               🐦 Tweet
             </button>
-            {platform !== 'Shopify' && (
-              <button onClick={() => importToShopify(platform.toLowerCase().replace('express', ''), product)} className="import-btn">
+            {!['Shopify'].includes(platform) && (
+              <button onClick={() => {
+                if (isGrocery) {
+                  importGroceryToShopify(product)
+                } else {
+                  importToShopify(platform.toLowerCase().replace('express', ''), product)
+                }
+              }} className="import-btn">
                 📥 Import to Shopify
               </button>
             )}
-            <button onClick={() => generateAd(product, platform)} className="imagine-btn">
+            <button onClick={() => {
+              if (isGrocery) generateGroceryAd(product)
+              else generateAd(product, platform)
+            }} className="imagine-btn">
               ✨ Generate Ad
             </button>
-            <button onClick={() => postMarketingTweet(product, platform)} className="marketing-btn">
+            <button onClick={() => {
+              if (isGrocery) postGroceryTweet(product)
+              else postMarketingTweet(product, platform)
+            }} className="marketing-btn">
               📈 Marketing Tweet
             </button>
-            <button onClick={() => postSpecialEvent('Flash Sale', product, platform)} className="event-btn">
+            <button onClick={() => postSpecialEvent(isGrocery ? 'Grocery Deals' : 'Flash Sale', product, platform)} className="event-btn">
               🎉 Special Event
             </button>
             <a href={url} target="_blank" rel="noopener" className="view-link">View →</a>
@@ -244,7 +325,7 @@ function App() {
     <div className="dashboard">
       <header>
         <h1>🛍️ Multi-Platform Dashboard</h1>
-        <p>Shopify + eBay + AliExpress → X (Twitter) + Imports</p>
+        <p>Shopify + eBay + AliExpress + Grocery/Fast Food (Walmart/Target/etc) → X (Twitter) + Imports</p>
         <div className="header-actions">
           <button onClick={refreshAll} disabled={Object.values(loading).some(Boolean)}>🔄 Refresh All</button>
           <button onClick={triggerCron} className="primary">📅 Trigger Daily Summary</button>
@@ -304,6 +385,41 @@ function App() {
             {loading.ali && <p>Loading...</p>}
             {aliProducts.map((p, i) => (
               <ProductCard key={i} product={p} platform="AliExpress" />
+            ))}
+          </div>
+        </section>
+
+        {/* Grocery & Fast Food */}
+        <section className="platform-section">
+          <div className="section-header">
+            <h2>🛒 Grocery & Fast Food</h2>
+            <select 
+              value={selectedGroceryStore} 
+              onChange={e => { setSelectedGroceryStore(e.target.value); fetchGrocery(e.target.value, searchTerms.grocery); }}
+              style={{padding: '6px', marginRight: '8px'}}
+            >
+              <option value="all">All Stores</option>
+              <option value="walmart">Walmart</option>
+              <option value="target">Target</option>
+              <option value="pak-n-save">Pak N Save</option>
+              <option value="woolworths">Woolworths</option>
+              <option value="konbini">Konbini</option>
+              <option value="jollibee">Jollibee</option>
+              <option value="fastfood">Fast Food</option>
+            </select>
+            <input 
+              placeholder="Search groceries..." 
+              value={searchTerms.grocery} 
+              onChange={e => setSearchTerms(s => ({...s, grocery: e.target.value}))}
+              onKeyDown={e => e.key === 'Enter' && handleGrocerySearch()}
+            />
+            <button onClick={handleGrocerySearch} disabled={loading.grocery}>Search</button>
+            <button onClick={() => fetchGrocery(selectedGroceryStore)} disabled={loading.grocery}>Load</button>
+          </div>
+          <div className="products-grid">
+            {loading.grocery && <p>Loading...</p>}
+            {groceryProducts.map((p, i) => (
+              <ProductCard key={i} product={p} platform={p.store || 'Grocery'} />
             ))}
           </div>
         </section>

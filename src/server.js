@@ -45,6 +45,14 @@ import {
   tweetAliExpressProduct, 
   formatAliExpressProduct 
 } from './aliexpress.js';
+import { 
+  getGroceryProducts, 
+  searchGroceryProducts, 
+  tweetGroceryDeal, 
+  generateGroceryAd, 
+  importGroceryToShopify, 
+  formatGroceryForTweet 
+} from './grocery.js';
 import { startCrons, triggerSummaryNow, runEventTweets } from './cron.js';
 import { loadSecretsFromSSM } from './aws.js';
 import { 
@@ -102,7 +110,8 @@ app.get('/', (req, res) => {
       'POST /import/to-shopify',
       'POST /ebay/webhooks   (eBay Event Notifications)',
       'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)',
-      'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access, /promote-tweet'
+      'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access, /promote-tweet',
+      'GET /grocery/:store/products, POST /tweet-grocery, /generate-grocery-ad, /import/grocery-to-shopify'
     ]
   });
 });
@@ -395,6 +404,59 @@ app.post('/generate-video', async (req, res) => {
     res.json({ success: true, video });
   } catch (err) {
     res.status(500).json({ error: 'Video generation failed', details: err.message });
+  }
+});
+
+// ---------- Grocery & Fast Food (Walmart/Target/Pak N Save/Woolworths/Konbini/Jollibee/Fast Food) ----------
+app.get('/grocery/:store/products', async (req, res) => {
+  try {
+    const store = req.params.store.toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit) || 8, 20);
+    const q = req.query.q;
+    let products;
+    if (q) {
+      products = searchGroceryProducts(q, store, limit);
+    } else {
+      products = getGroceryProducts(store, limit);
+    }
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch grocery products' });
+  }
+});
+
+app.post('/tweet-grocery', async (req, res) => {
+  try {
+    const { item, options } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const result = await tweetGroceryDeal(item, options || {});
+    logger.promptLog('GROCERY TWEET', { item, result });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Grocery tweet failed', details: err.message });
+  }
+});
+
+app.post('/generate-grocery-ad', async (req, res) => {
+  try {
+    const { item, scenePrompt } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const ads = await generateGroceryAd(item, scenePrompt);
+    res.json({ success: true, ads });
+  } catch (err) {
+    res.status(500).json({ error: 'Grocery ad generation failed', details: err.message });
+  }
+});
+
+app.post('/import/grocery-to-shopify', async (req, res) => {
+  try {
+    const { item } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const shopifyProduct = await importGroceryToShopify(item);
+    logger.promptLog('IMPORTED GROCERY TO SHOPIFY', { item, shopifyId: shopifyProduct.id });
+    res.json({ success: true, shopifyProduct });
+  } catch (err) {
+    res.status(500).json({ error: 'Grocery import failed', details: err.message });
   }
 });
 
@@ -701,7 +763,7 @@ if (isMainModule) {
       ? `${WEBHOOK_BASE_URL}/webhooks` 
       : `http://localhost:${PORT}/webhooks (set WEBHOOK_BASE_URL for remote/production)`;
     logger.info(`   Webhook endpoint: POST ${effectiveWebhook}`);
-    logger.info(`   Multi-platform: Shopify + eBay + AliExpress → X/Twitter (marketing/ads/events) + WordPress + externals + xAI Imagine`);
+    logger.info(`   Multi-platform: Shopify + eBay + AliExpress + Grocery (Walmart/Target/etc) + Fast Food → X/Twitter (marketing/ads/events) + WordPress + externals + xAI Imagine`);
     if (!WEBHOOK_SECRET) {
       logger.warn('SHOPIFY_WEBHOOK_SECRET not set — webhooks will be rejected!');
     }
