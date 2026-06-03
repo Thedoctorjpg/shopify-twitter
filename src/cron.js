@@ -23,6 +23,7 @@ const ALI_KEYWORDS = (process.env.DAILY_SUMMARY_KEYWORDS || 'trending gadgets,wi
 
 // Event wiring config (add more via env or code)
 const SPECIAL_EVENTS = [
+  { name: 'Chinese New Year', month: 2, day: 1, platform: 'AliExpress' }, // Lunar New Year / Spring Festival (varies yearly, typically late Jan to mid-Feb) - enormous shopping event in China/Asia, ideal for AliExpress
   { name: 'Valentines', month: 2, day: 14, platform: 'Shopify' }, // Valentine's Day - romantic gifts, flowers, jewelry
   { name: "Mother's Day", month: 5, day: 12, platform: 'eBay' }, // Mother's Day (approx second Sunday May) - gifts for mom
   { name: "Father's Day", month: 6, day: 16, platform: 'AliExpress' }, // Father's Day (approx third Sunday June) - gifts for dad

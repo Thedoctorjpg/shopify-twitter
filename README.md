@@ -448,7 +448,7 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 
 - Marketing tweets: `POST /tweet-marketing` with UTM params, campaign tracking, auto Imagine ad images. Uses Grok for smart copy if `USE_GROK_COPY=true`.
 - Ads support: `GET /tweet-metrics/:tweetId` for analytics (public + organic metrics). `GET /twitter/ads-access` check. `POST /promote-tweet` for full promotion (requires `TWITTER_ADS_ACCOUNT_ID` and Ads account).
-- Special events: `POST /tweet-special-event` for holidays, sales, launches (now includes by default: Valentines Feb 14, Mother's Day May 12, Father's Day June 16, Halloween Oct 31, EOFY June 30, Singles Day 11/11, Black Friday, etc.). **Cron wired**: daily events check via `runEventTweets()` alongside summary. Config in src/cron.js SPECIAL_EVENTS.
+- Special events: `POST /tweet-special-event` for holidays, sales, launches (now includes by default: Chinese New Year (Lunar New Year, ~Feb 1, varies), Valentines Feb 14, Mother's Day May 12, Father's Day June 16, Halloween Oct 31, EOFY June 30, Singles Day 11/11, Black Friday, etc.). **Cron wired**: daily events check via `runEventTweets()` alongside summary. Config in src/cron.js SPECIAL_EVENTS.
 - Frontend Twitter Hub: Test buttons, metrics lookup, ads status, event trigger.
 - Grok text gen integrated for dynamic marketing/event copy (via xAI chat API).
 - See `src/twitter.js`, `src/grok.js`, `src/cron.js` and utils for generators.
@@ -463,7 +463,7 @@ Current status (built with Grok):
 - ✅ AWS hosting ready (Dockerfile + App Runner scripts + SSM secrets loader + GitHub Actions)
 - ✅ Frontend Dashboard (React/Vite - unified view + tweet/import + xAI Grok Imagine + Twitter Marketing Hub)
 - ✅ xAI Grok Imagine API integration (image gen, product ad mockups, edits, video)
-- ✅ Enhanced X/Twitter: Marketing integration, Ads support (metrics + full promote), Special events (Valentines, Mother's, Father's, Halloween, EOFY, Singles Day, etc.) + cron wiring, Grok text copy gen
+- ✅ Enhanced X/Twitter: Marketing integration, Ads support (metrics + full promote), Special events (Chinese New Year, Valentines, Mother's, Father's, Halloween, EOFY, Singles Day, etc.) + cron wiring, Grok text copy gen
 - ✅ Excellent docs + prompt logs
 
 Run frontend: `npm run frontend` (after `cd frontend && npm install` if needed)

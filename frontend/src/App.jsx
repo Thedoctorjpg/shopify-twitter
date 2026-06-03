@@ -381,6 +381,7 @@ function App() {
             <button onClick={() => postSpecialEvent('Black Friday', {title: 'Huge Savings', price: '50'}, 'Shopify')}>Simulate Black Friday Tweet</button>
             <button onClick={() => postSpecialEvent('EOFY', {title: 'EOFY Clearance', price: '30'}, 'Shopify')}>Simulate EOFY Tweet</button>
             <button onClick={() => postSpecialEvent('Singles Day', {title: '11.11 Deals', price: '11'}, 'AliExpress')}>Simulate Singles Day Tweet</button>
+            <button onClick={() => postSpecialEvent('Chinese New Year', {title: 'Lunar New Year Deals', price: '88'}, 'AliExpress')}>Simulate Chinese New Year Tweet</button>
             <button onClick={() => postSpecialEvent('Valentines', {title: 'Valentine Gifts', price: '25'}, 'Shopify')}>Simulate Valentines Tweet</button>
             <button onClick={() => postSpecialEvent("Mother's Day", {title: "Mom's Special", price: '40'}, 'eBay')}>Simulate Mother's Day Tweet</button>
             <button onClick={() => postSpecialEvent("Father's Day", {title: "Dad's Gear", price: '35'}, 'AliExpress')}>Simulate Father's Day Tweet</button>
