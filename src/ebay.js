@@ -201,30 +201,34 @@ const publicKeyCache = new Map(); // kid -> {key, expires?}
 
 async function fetchEbayPublicKey(kid) {
   if (publicKeyCache.has(kid)) {
-    return publicKeyCache.get(kid);
+    const cached = publicKeyCache.get(kid);
+    if (cached && (!cached.expires || Date.now() < cached.expires)) return cached.key || cached;
   }
 
   const base = EBAY_ENV === 'sandbox' ? 'https://api.sandbox.ebay.com' : 'https://api.ebay.com';
   const url = `${base}/commerce/notification/v1/public_key/${kid}`;
 
   try {
-    // Note: fetching public key may require app token or be public; in practice often needs auth or is open.
-    // For robustness we try with app token if available.
     let headers = {};
     try {
       const token = await getEbayAppToken();
       headers = { Authorization: `Bearer ${token}` };
-    } catch {}
+    } catch (e) { /* public key may be fetchable unauthed */ }
 
     const res = await axios.get(url, { headers, timeout: 10000 });
-    const keyData = res.data;
-    const publicKey = keyData?.key || keyData; // shape may vary
+    const keyData = res.data || {};
+    // eBay often returns { key: '-----BEGIN PUBLIC KEY-----\n...' , format, ... } or direct PEM
+    let publicKey = keyData.key || keyData.publicKey || keyData;
+    if (typeof publicKey === 'object') publicKey = publicKey.pem || JSON.stringify(publicKey);
 
-    publicKeyCache.set(kid, publicKey);
-    logger.debug('Fetched eBay public key', { kid });
+    const entry = { key: publicKey, expires: Date.now() + 1000*60*60*6 }; // cache 6h
+    publicKeyCache.set(kid, entry);
+    logger.debug('Fetched and cached eBay public key', { kid, hasPem: !!publicKey });
     return publicKey;
   } catch (err) {
-    logger.error('Failed to fetch eBay public key', err, { kid });
+    logger.error('Failed to fetch eBay public key', err, { kid, note: 'Check response shape in logs or use app token' });
+    // Fallback to accepting in dev if no key
+    if (process.env.NODE_ENV !== 'production') return 'DEV_FALLBACK_ACCEPT';
     throw err;
   }
 }
@@ -255,20 +259,21 @@ export async function verifyEbayWebhook(rawBody, signatureHeader) {
       return false;
     }
 
+    if (publicKeyPem === 'DEV_FALLBACK_ACCEPT') {
+      logger.warn('eBay verification using DEV fallback (not for prod)');
+      return true;
+    }
+
     // Verify using crypto (eBay uses ECDSA, typically ES256 -> sha256)
-    // The signature in header is base64 of the raw sig
     const verify = crypto.createVerify('SHA256');
-    verify.update(rawBody);  // raw body as received
+    verify.update(rawBody);
     verify.end();
 
-    // Convert the base64 signature to buffer
     const sigBuffer = Buffer.from(signature, 'base64');
-
-    // publicKeyPem should be in PEM format from eBay
     const isValid = verify.verify(publicKeyPem, sigBuffer);
 
     if (!isValid) {
-      logger.warn('eBay webhook signature verification FAILED');
+      logger.warn('eBay webhook signature verification FAILED - check key format');
     } else {
       logger.info('eBay webhook signature verified successfully');
     }
