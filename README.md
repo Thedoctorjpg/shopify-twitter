@@ -430,7 +430,7 @@ Copy-paste these straight into your next prompt to Cursor / Grok / Claude for pe
 
 - Marketing tweets: `POST /tweet-marketing` with UTM params, campaign tracking, auto Imagine ad images. Uses Grok for smart copy if `USE_GROK_COPY=true`.
 - Ads support: `GET /tweet-metrics/:tweetId` for analytics (public + organic metrics). `GET /twitter/ads-access` check. `POST /promote-tweet` for full promotion (requires `TWITTER_ADS_ACCOUNT_ID` and Ads account).
-- Special events: `POST /tweet-special-event` for holidays, sales, launches. **Cron wired**: daily events check via `runEventTweets()` alongside summary.
+- Special events: `POST /tweet-special-event` for holidays, sales, launches (now includes EOFY June 30 and Singles Day 11/11 by default). **Cron wired**: daily events check via `runEventTweets()` alongside summary. Config in src/cron.js SPECIAL_EVENTS.
 - Frontend Twitter Hub: Test buttons, metrics lookup, ads status, event trigger.
 - Grok text gen integrated for dynamic marketing/event copy (via xAI chat API).
 - See `src/twitter.js`, `src/grok.js`, `src/cron.js` and utils for generators.

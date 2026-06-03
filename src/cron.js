@@ -23,11 +23,13 @@ const ALI_KEYWORDS = (process.env.DAILY_SUMMARY_KEYWORDS || 'trending gadgets,wi
 
 // Event wiring config (add more via env or code)
 const SPECIAL_EVENTS = [
+  { name: 'EOFY', month: 6, day: 30, platform: 'Shopify' }, // End of Financial Year (e.g. Australia June 30) - big sales
+  { name: 'Singles Day', month: 11, day: 11, platform: 'AliExpress' }, // 11/11 - massive global shopping event, perfect for AliExpress
   { name: 'Black Friday', month: 11, day: 29, platform: 'Shopify' }, // Nov 29 example
   { name: 'Cyber Monday', month: 12, day: 2, platform: 'eBay' },
   { name: 'Holiday Launch', month: 12, day: 1, platform: 'AliExpress' },
   // Add more: { name: 'Valentines', month: 2, day: 14, ... }
-  // Or load from DB/env JSON
+  // Or load from DB/env JSON: process.env.SPECIAL_EVENTS ? JSON.parse(...) : [...]
 ];
 
 let cronTask = null;
