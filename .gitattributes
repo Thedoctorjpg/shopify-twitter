@@ -1,0 +1,32 @@
+# Normalize line endings for cross-platform development (Windows + others)
+# See: https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings
+
+* text=auto
+
+# Force LF for source code and docs (recommended for JS/TS/Node projects)
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+
+# Shell / lockfiles
+package-lock.json text eol=lf
+*.sh text eol=lf
