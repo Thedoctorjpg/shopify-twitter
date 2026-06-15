@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T18:29:06.624Z",
+  "generatedAt": "2026-06-15T18:34:51.014Z",
   "lane": "all",
   "lanes": {
     "hinge": {
@@ -41,6 +41,11 @@
       "label": "Helen boundary / scam recovery",
       "tone": "cord-cutting",
       "cta": "block-not-negotiate"
+    },
+    "tarot-scam": {
+      "label": "Tarot-predicted scam PSA",
+      "tone": "sovereign-deadpan",
+      "cta": "dont-fund-predictions"
     }
   },
   "itemCount": 24,
@@ -207,6 +212,39 @@
         "tags": "ep-8,princes-dawn,lantern",
         "tweetHook": "Lantern Bard tax. Golden hour not included.",
         "searchKeywords": "rechargeable led lantern warm white portable",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-025",
+      "title": "Tarot Scam Awareness Card (wallet size)",
+      "price": "4.50",
+      "category": "scam-awareness",
+      "lanes": [
+        "tarot-scam",
+        "sovereign",
+        "tinder"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "psychic scam awareness card wallet guide",
+      "tweetHook": "The cards didn't show your bank details. Block.",
+      "score": 96,
+      "tags": "tarot-scam,helen,side-tarot-scam",
+      "computedScore": 98,
+      "formatted": {
+        "id": "td-025",
+        "title": "Tarot Scam Awareness Card (wallet size)",
+        "price": "4.50",
+        "category": "scam-awareness",
+        "lane": "tarot-scam",
+        "laneLabel": "Tarot-predicted scam PSA",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-025?lane=tarot-scam",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "tarot-scam,helen,side-tarot-scam",
+        "tweetHook": "The cards didn't show your bank details. Block.",
+        "searchKeywords": "psychic scam awareness card wallet guide",
         "computedScore": 100
       }
     },
@@ -467,6 +505,39 @@
         "tags": "degraves,social-cultural,main-others",
         "tweetHook": "Degraves coffee + questions that aren't love bombs.",
         "searchKeywords": "couples card game date night portable",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-026",
+      "title": "Boundaries Journal — \"I don't fund predictions\"",
+      "price": "14.00",
+      "category": "sovereign-gear",
+      "lanes": [
+        "tarot-scam",
+        "sovereign",
+        "bumble"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "boundaries journal dotted notebook self care",
+      "tweetHook": "4G > fate. Ink > invoice.",
+      "score": 90,
+      "tags": "tarot-scam,ep-4,side-boundary",
+      "computedScore": 93,
+      "formatted": {
+        "id": "td-026",
+        "title": "Boundaries Journal — \"I don't fund predictions\"",
+        "price": "14.00",
+        "category": "sovereign-gear",
+        "lane": "tarot-scam",
+        "laneLabel": "Tarot-predicted scam PSA",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-026?lane=tarot-scam",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "tarot-scam,ep-4,side-boundary",
+        "tweetHook": "4G > fate. Ink > invoice.",
+        "searchKeywords": "boundaries journal dotted notebook self care",
         "computedScore": 100
       }
     },
@@ -761,72 +832,6 @@
         "tweetHook": "Write the tsundere reply. Mail it never.",
         "searchKeywords": "kawaii stationery set gel pen sticky notes",
         "computedScore": 93
-      }
-    },
-    {
-      "id": "td-021",
-      "title": "Funny Dating App Survival Mug",
-      "price": "12.99",
-      "category": "tsundere-merch",
-      "lanes": [
-        "tinder",
-        "hinge",
-        "otaku"
-      ],
-      "skillId": "lo3tus",
-      "searchKeywords": "funny dating mug single coffee cup",
-      "tweetHook": "It's not you. It's my content department.",
-      "score": 81,
-      "tags": "lo3tus,daily-life",
-      "computedScore": 84,
-      "formatted": {
-        "id": "td-021",
-        "title": "Funny Dating App Survival Mug",
-        "price": "12.99",
-        "category": "tsundere-merch",
-        "lane": "tinder",
-        "laneLabel": "Tinder / scam PSA",
-        "skillId": "lo3tus",
-        "url": "https://shop.example.com/tsundere-dating/td-021?lane=tinder",
-        "image": null,
-        "store": "Tsundere Dating Catalog",
-        "tags": "lo3tus,daily-life",
-        "tweetHook": "It's not you. It's my content department.",
-        "searchKeywords": "funny dating mug single coffee cup",
-        "computedScore": 92
-      }
-    },
-    {
-      "id": "td-023",
-      "title": "K-Beauty Lip Tint Set (date-night subtle)",
-      "price": "13.50",
-      "category": "date-night",
-      "lanes": [
-        "korean",
-        "hinge",
-        "bumble"
-      ],
-      "skillId": "lo3tus",
-      "searchKeywords": "korean lip tint set gradient",
-      "tweetHook": "Tsundere lip sync: fine face, complicated interior.",
-      "score": 80,
-      "tags": "reel-b,b8-fine-face",
-      "computedScore": 83,
-      "formatted": {
-        "id": "td-023",
-        "title": "K-Beauty Lip Tint Set (date-night subtle)",
-        "price": "13.50",
-        "category": "date-night",
-        "lane": "korean",
-        "laneLabel": "K-culture + TTMIK crossover",
-        "skillId": "lo3tus",
-        "url": "https://shop.example.com/tsundere-dating/td-023?lane=korean",
-        "image": null,
-        "store": "Tsundere Dating Catalog",
-        "tags": "reel-b,b8-fine-face",
-        "tweetHook": "Tsundere lip sync: fine face, complicated interior.",
-        "searchKeywords": "korean lip tint set gradient",
-        "computedScore": 91
       }
     }
   ]
