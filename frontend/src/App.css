@@ -124,6 +124,30 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+.tweet-hook {
+  font-size: 0.85rem;
+  color: #c4b5fd;
+  font-style: italic;
+  margin: 0.25rem 0;
+}
+
+.product-score {
+  font-size: 0.75rem;
+  color: #f472b6;
+  font-weight: 600;
+}
+
+.product-lanes {
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tsundere-section {
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
 .product-price { font-weight: 700; color: #111; font-size: 15px; }
 
 .product-actions {

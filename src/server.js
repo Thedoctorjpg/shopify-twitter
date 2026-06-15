@@ -53,6 +53,17 @@ import {
   importGroceryToShopify, 
   formatGroceryForTweet 
 } from './grocery.js';
+import {
+  getTsundereDatingProducts,
+  searchTsundereDatingProducts,
+  getOptimalItemList,
+  tweetTsundereDatingProduct,
+  generateTsundereDatingAd,
+  importTsundereDatingToShopify,
+  enrichWithLiveSearch,
+  DATING_SITE_LANES,
+  ALL_NICHES
+} from './tsundere-dating.js';
 import { startCrons, triggerSummaryNow, runEventTweets } from './cron.js';
 import { loadSecretsFromSSM } from './aws.js';
 import { 
@@ -111,7 +122,8 @@ app.get('/', (req, res) => {
       'POST /ebay/webhooks   (eBay Event Notifications)',
       'POST /generate-image, /edit-image, /generate-product-ad, /generate-video   (xAI Grok Imagine)',
       'POST /tweet-marketing, /tweet-special-event, GET /tweet-metrics/:id, /twitter/ads-access, /promote-tweet',
-      'GET /grocery/:store/products (incl. Uber Eats/DoorDash), POST /tweet-grocery, /generate-grocery-ad, /import/grocery-to-shopify'
+      'GET /grocery/:store/products (incl. Uber Eats/DoorDash), POST /tweet-grocery, /generate-grocery-ad, /import/grocery-to-shopify',
+      'GET /tsundere-dating/:niche/products, GET /tsundere-dating/optimal-list, POST /tweet-tsundere-dating, /generate-tsundere-ad, /import/tsundere-to-shopify'
     ]
   });
 });
@@ -457,6 +469,80 @@ app.post('/import/grocery-to-shopify', async (req, res) => {
     res.json({ success: true, shopifyProduct });
   } catch (err) {
     res.status(500).json({ error: 'Grocery import failed', details: err.message });
+  }
+});
+
+// ---------- Tsundere / Dating Site Catalog ----------
+app.get('/tsundere-dating/lanes', (req, res) => {
+  res.json({ lanes: DATING_SITE_LANES, niches: ALL_NICHES });
+});
+
+app.get('/tsundere-dating/optimal-list', async (req, res) => {
+  try {
+    const lane = req.query.lane || null;
+    const category = req.query.category || null;
+    const limit = Math.min(parseInt(req.query.limit) || 24, 50);
+    const enrich = req.query.enrich === 'true';
+    let items = getOptimalItemList({ lane, category, limit });
+    if (enrich) {
+      const enriched = await enrichWithLiveSearch(items, { perItem: 1 });
+      return res.json({ lane: lane || 'all', items, enriched });
+    }
+    res.json({ lane: lane || 'all', itemCount: items.length, items });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to build optimal list', details: err.message });
+  }
+});
+
+app.get('/tsundere-dating/:niche/products', async (req, res) => {
+  try {
+    const niche = req.params.niche.toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit) || 12, 30);
+    const q = req.query.q;
+    let products;
+    if (q) {
+      products = searchTsundereDatingProducts(q, niche, limit);
+    } else {
+      products = getTsundereDatingProducts(niche, limit);
+    }
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch tsundere/dating products' });
+  }
+});
+
+app.post('/tweet-tsundere-dating', async (req, res) => {
+  try {
+    const { item, options } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const result = await tweetTsundereDatingProduct(item, options || {});
+    logger.promptLog('TSUNDERE DATING TWEET', { item, result });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'Tsundere dating tweet failed', details: err.message });
+  }
+});
+
+app.post('/generate-tsundere-ad', async (req, res) => {
+  try {
+    const { item, scenePrompt } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const ads = await generateTsundereDatingAd(item, scenePrompt);
+    res.json({ success: true, ads });
+  } catch (err) {
+    res.status(500).json({ error: 'Tsundere ad generation failed', details: err.message });
+  }
+});
+
+app.post('/import/tsundere-to-shopify', async (req, res) => {
+  try {
+    const { item } = req.body;
+    if (!item) return res.status(400).json({ error: 'item required' });
+    const shopifyProduct = await importTsundereDatingToShopify(item);
+    logger.promptLog('IMPORTED TSUNDERE DATING TO SHOPIFY', { item, shopifyId: shopifyProduct.id });
+    res.json({ success: true, shopifyProduct });
+  } catch (err) {
+    res.status(500).json({ error: 'Tsundere import failed', details: err.message });
   }
 });
 

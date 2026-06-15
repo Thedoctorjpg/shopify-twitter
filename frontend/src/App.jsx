@@ -8,10 +8,12 @@ function App() {
   const [ebayProducts, setEbayProducts] = useState([])
   const [aliProducts, setAliProducts] = useState([])
   const [groceryProducts, setGroceryProducts] = useState([])
-  const [loading, setLoading] = useState({ shopify: false, ebay: false, ali: false, grocery: false })
+  const [tsundereProducts, setTsundereProducts] = useState([])
+  const [loading, setLoading] = useState({ shopify: false, ebay: false, ali: false, grocery: false, tsundere: false })
   const [message, setMessage] = useState('')
-  const [searchTerms, setSearchTerms] = useState({ ebay: '', ali: '', grocery: '' })
+  const [searchTerms, setSearchTerms] = useState({ ebay: '', ali: '', grocery: '', tsundere: '' })
   const [selectedGroceryStore, setSelectedGroceryStore] = useState('all')
+  const [selectedTsundereLane, setSelectedTsundereLane] = useState('all')
   const [generatedResults, setGeneratedResults] = useState([])
   const [twitterMetrics, setTwitterMetrics] = useState(null)
   const [adsAccess, setAdsAccess] = useState(null)
@@ -64,11 +66,13 @@ function App() {
     fetchEbay(searchTerms.ebay)
     fetchAli(searchTerms.ali)
     fetchGrocery(selectedGroceryStore, searchTerms.grocery)
+    fetchTsundere(selectedTsundereLane, searchTerms.tsundere)
   }
 
   useEffect(() => {
     refreshAll()
     fetchGrocery('all')
+    fetchTsundere('all')
   }, [])
 
   const tweetProduct = async (platform, item, customText = null) => {
@@ -270,12 +274,80 @@ function App() {
     fetchGrocery(selectedGroceryStore, searchTerms.grocery)
   }
 
+  const fetchTsundere = async (lane = 'all', q = '') => {
+    setLoading(l => ({ ...l, tsundere: true }))
+    try {
+      let url = `${API}/tsundere-dating/${lane}/products?limit=12`
+      if (q) url += `&q=${encodeURIComponent(q)}`
+      const res = await fetch(url)
+      const data = await res.json()
+      setTsundereProducts(data)
+    } catch (e) {
+      showMessage('Failed to load tsundere/dating catalog', true)
+    }
+    setLoading(l => ({ ...l, tsundere: false }))
+  }
+
+  const postTsundereTweet = async (product) => {
+    try {
+      const res = await fetch(`${API}/tweet-tsundere-dating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item: product,
+          options: { lane: product.lanes?.[0] || selectedTsundereLane, campaign: 'tsundere_dating' }
+        })
+      })
+      const data = await res.json()
+      showMessage(`Tsundere dating tweet posted! ${data.result?.mock ? '(mock)' : ''}`)
+    } catch (e) {
+      showMessage(`Tsundere tweet failed: ${e.message}`, true)
+    }
+  }
+
+  const generateTsundereAd = async (product) => {
+    try {
+      const res = await fetch(`${API}/generate-tsundere-ad`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item: product,
+          scenePrompt: `tsundere dating merch ad, Melbourne laneway, playful scam-awareness energy, product: ${product.title}`
+        })
+      })
+      const data = await res.json()
+      showMessage('Generated tsundere ad with Imagine!')
+      setGeneratedResults(prev => [...prev, { platform: 'Tsundere Dating', product: product.title, results: data.ads || data, timestamp: Date.now() }])
+    } catch (e) {
+      showMessage(`Tsundere ad failed: ${e.message}`, true)
+    }
+  }
+
+  const importTsundereToShopify = async (product) => {
+    try {
+      const res = await fetch(`${API}/import/tsundere-to-shopify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: product })
+      })
+      const data = await res.json()
+      showMessage(`Imported tsundere item to Shopify draft! ID: ${data.shopifyProduct?.id || 'N/A'}`)
+    } catch (e) {
+      showMessage(`Tsundere import failed: ${e.message}`, true)
+    }
+  }
+
+  const handleTsundereSearch = () => {
+    fetchTsundere(selectedTsundereLane, searchTerms.tsundere)
+  }
+
   const ProductCard = ({ product, platform }) => {
     const title = product.title || product.product_title || 'Untitled'
     const price = product.price || product.variants?.[0]?.price || product.sale_price || '?'
     const img = product.images?.[0]?.src || product.image?.imageUrl || product.product_main_image_url || product.thumbnailImages?.[0]?.imageUrl || 'https://via.placeholder.com/120'
     const url = product.url || product.itemWebUrl || product.product_detail_url || '#'
     const isGrocery = !!product.store || platform.toLowerCase().includes('grocery') || platform.toLowerCase().includes('fast') || ['Walmart','Target','Pak N Save','Woolworths','Konbini','Jollibee','Fast Food'].includes(platform)
+    const isTsundere = platform === 'Tsundere Dating' || !!product.tweetHook || !!product.lanes
 
     return (
       <div className="product-card">
@@ -283,35 +355,41 @@ function App() {
         <div className="product-info">
           <div className="product-platform">{platform}{product.store && product.store !== platform ? ` (${product.store})` : ''}</div>
           <h4>{title.substring(0, 60)}{title.length > 60 ? '...' : ''}</h4>
+          {isTsundere && product.tweetHook && <p className="tweet-hook">{product.tweetHook}</p>}
+          {isTsundere && product.computedScore && <div className="product-score">Score: {product.computedScore}</div>}
+          {isTsundere && product.lanes && <div className="product-lanes">{product.lanes.join(' · ')}</div>}
           <div className="product-price">${price}</div>
           <div className="product-actions">
-            <button onClick={() => tweetProduct(platform.toLowerCase().replace('express', '').replace('grocery', ''), product)}>
+            <button onClick={() => {
+              if (isTsundere) postTsundereTweet(product)
+              else tweetProduct(platform.toLowerCase().replace('express', '').replace('grocery', ''), product)
+            }}>
               🐦 Tweet
             </button>
             {!['Shopify'].includes(platform) && (
               <button onClick={() => {
-                if (isGrocery) {
-                  importGroceryToShopify(product)
-                } else {
-                  importToShopify(platform.toLowerCase().replace('express', ''), product)
-                }
+                if (isTsundere) importTsundereToShopify(product)
+                else if (isGrocery) importGroceryToShopify(product)
+                else importToShopify(platform.toLowerCase().replace('express', ''), product)
               }} className="import-btn">
                 📥 Import to Shopify
               </button>
             )}
             <button onClick={() => {
-              if (isGrocery) generateGroceryAd(product)
+              if (isTsundere) generateTsundereAd(product)
+              else if (isGrocery) generateGroceryAd(product)
               else generateAd(product, platform)
             }} className="imagine-btn">
               ✨ Generate Ad
             </button>
             <button onClick={() => {
-              if (isGrocery) postGroceryTweet(product)
+              if (isTsundere) postTsundereTweet(product)
+              else if (isGrocery) postGroceryTweet(product)
               else postMarketingTweet(product, platform)
             }} className="marketing-btn">
               📈 Marketing Tweet
             </button>
-            <button onClick={() => postSpecialEvent(isGrocery ? 'Grocery Deals' : 'Flash Sale', product, platform)} className="event-btn">
+            <button onClick={() => postSpecialEvent(isTsundere ? 'Tsundere Dating' : isGrocery ? 'Grocery Deals' : 'Flash Sale', product, platform)} className="event-btn">
               🎉 Special Event
             </button>
             <a href={url} target="_blank" rel="noopener" className="view-link">View →</a>
@@ -422,6 +500,42 @@ function App() {
             {loading.grocery && <p>Loading...</p>}
             {groceryProducts.map((p, i) => (
               <ProductCard key={i} product={p} platform={p.store || 'Grocery'} />
+            ))}
+          </div>
+        </section>
+
+        {/* Tsundere / Dating Site Catalog */}
+        <section className="platform-section tsundere-section">
+          <div className="section-header">
+            <h2>💘 Tsundere / Dating Site Catalog</h2>
+            <select
+              value={selectedTsundereLane}
+              onChange={e => { setSelectedTsundereLane(e.target.value); fetchTsundere(e.target.value, searchTerms.tsundere); }}
+              style={{padding: '6px', marginRight: '8px'}}
+            >
+              <option value="all">All lanes (optimal)</option>
+              <option value="tinder">Tinder / Scam PSA</option>
+              <option value="hinge">Hinge / IRL dates</option>
+              <option value="bumble">Bumble / Boundaries</option>
+              <option value="otaku">Anime / Tsundere merch</option>
+              <option value="melbourne">Melbourne date-night</option>
+              <option value="creator">Reels / Creator gear</option>
+              <option value="korean">K-culture + TTMIK</option>
+              <option value="sovereign">Helen / Scam recovery</option>
+            </select>
+            <input
+              placeholder="Search catalog (scam, gopro, sticker...)"
+              value={searchTerms.tsundere}
+              onChange={e => setSearchTerms(s => ({...s, tsundere: e.target.value}))}
+              onKeyDown={e => e.key === 'Enter' && handleTsundereSearch()}
+            />
+            <button onClick={handleTsundereSearch} disabled={loading.tsundere}>Search</button>
+            <button onClick={() => fetchTsundere(selectedTsundereLane)} disabled={loading.tsundere}>Load optimal</button>
+          </div>
+          <div className="products-grid">
+            {loading.tsundere && <p>Loading...</p>}
+            {tsundereProducts.map((p, i) => (
+              <ProductCard key={p.id || i} product={p} platform="Tsundere Dating" />
             ))}
           </div>
         </section>

@@ -1,0 +1,833 @@
+{
+  "generatedAt": "2026-06-15T18:29:06.624Z",
+  "lane": "all",
+  "lanes": {
+    "hinge": {
+      "label": "Hinge / IRL date prep",
+      "tone": "warm-deadpan",
+      "cta": "first-date-not-a-rescue-mission"
+    },
+    "bumble": {
+      "label": "Bumble / boundary-first",
+      "tone": "sovereign-polite",
+      "cta": "no-love-bomb-speedrun"
+    },
+    "tinder": {
+      "label": "Tinder / scam PSA",
+      "tone": "chaotic-neutral",
+      "cta": "red-flag-prop-required"
+    },
+    "otaku": {
+      "label": "Anime / tsundere merch",
+      "tone": "tsundere",
+      "cta": "not-enjoying-but-buying-anyway"
+    },
+    "melbourne": {
+      "label": "Melbourne date-night",
+      "tone": "laneway-pilgrim",
+      "cta": "hosier-golden-hour"
+    },
+    "creator": {
+      "label": "Reels / TikTok creator",
+      "tone": "gopro-feral",
+      "cta": "content-dept-approved"
+    },
+    "korean": {
+      "label": "K-culture + TTMIK crossover",
+      "tone": "study-date",
+      "cta": "shadowing-on-the-tram"
+    },
+    "sovereign": {
+      "label": "Helen boundary / scam recovery",
+      "tone": "cord-cutting",
+      "cta": "block-not-negotiate"
+    }
+  },
+  "itemCount": 24,
+  "items": [
+    {
+      "id": "td-003",
+      "title": "RED FLAG Prop Card Deck (dating satire)",
+      "price": "12.50",
+      "category": "scam-awareness",
+      "lanes": [
+        "tinder",
+        "bumble",
+        "sovereign"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "red flag dating card game party",
+      "tweetHook": "Episode counter optional. Boundary mandatory. 🚩",
+      "score": 98,
+      "tags": "scam-psa,reel-a,main-skit",
+      "computedScore": 100,
+      "formatted": {
+        "id": "td-003",
+        "title": "RED FLAG Prop Card Deck (dating satire)",
+        "price": "12.50",
+        "category": "scam-awareness",
+        "lane": "tinder",
+        "laneLabel": "Tinder / scam PSA",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-003?lane=tinder",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "scam-psa,reel-a,main-skit",
+        "tweetHook": "Episode counter optional. Boundary mandatory. 🚩",
+        "searchKeywords": "red flag dating card game party",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-014",
+      "title": "Scam Survival Zine / Romance Fraud Guide",
+      "price": "7.50",
+      "category": "scam-awareness",
+      "lanes": [
+        "tinder",
+        "sovereign",
+        "bumble"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "romance scam awareness booklet guide",
+      "tweetHook": "Reel A energy, but you can hold it.",
+      "score": 97,
+      "tags": "reel-a,scam-psa,main-skit",
+      "computedScore": 100,
+      "formatted": {
+        "id": "td-014",
+        "title": "Scam Survival Zine / Romance Fraud Guide",
+        "price": "7.50",
+        "category": "scam-awareness",
+        "lane": "tinder",
+        "laneLabel": "Tinder / scam PSA",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-014?lane=tinder",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-a,scam-psa,main-skit",
+        "tweetHook": "Reel A energy, but you can hold it.",
+        "searchKeywords": "romance scam awareness booklet guide",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-004",
+      "title": "\"I'm Fine\" Tsundere Sticker Pack (50pcs)",
+      "price": "6.99",
+      "category": "tsundere-merch",
+      "lanes": [
+        "otaku",
+        "tinder",
+        "creator"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "anime tsundere sticker pack kawaii",
+      "tweetHook": "멜버른 골목이 정말 예뻐요 — on your laptop, lying.",
+      "score": 96,
+      "tags": "not-impressed,ep-2,reel-b",
+      "computedScore": 99,
+      "formatted": {
+        "id": "td-004",
+        "title": "\"I'm Fine\" Tsundere Sticker Pack (50pcs)",
+        "price": "6.99",
+        "category": "tsundere-merch",
+        "lane": "otaku",
+        "laneLabel": "Anime / tsundere merch",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-004?lane=otaku",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "not-impressed,ep-2,reel-b",
+        "tweetHook": "멜버른 골목이 정말 예뻐요 — on your laptop, lying.",
+        "searchKeywords": "anime tsundere sticker pack kawaii",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-001",
+      "title": "Mini Ring Light + Phone Clip (laneway selfie kit)",
+      "price": "14.99",
+      "category": "creator-gear",
+      "lanes": [
+        "creator",
+        "melbourne",
+        "hinge"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "phone ring light clip selfie vlog",
+      "tweetHook": "Not enjoying the lighting. Fixing it anyway. 📸",
+      "score": 94,
+      "tags": "gopro,content,reel-b,hosier",
+      "computedScore": 98,
+      "formatted": {
+        "id": "td-001",
+        "title": "Mini Ring Light + Phone Clip (laneway selfie kit)",
+        "price": "14.99",
+        "category": "creator-gear",
+        "lane": "creator",
+        "laneLabel": "Reels / TikTok creator",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-001?lane=creator",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "gopro,content,reel-b,hosier",
+        "tweetHook": "Not enjoying the lighting. Fixing it anyway. 📸",
+        "searchKeywords": "phone ring light clip selfie vlog",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-019",
+      "title": "LED Lantern Prop (rechargeable, warm white)",
+      "price": "22.00",
+      "category": "tsundere-merch",
+      "lanes": [
+        "melbourne",
+        "otaku",
+        "creator"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "rechargeable led lantern warm white portable",
+      "tweetHook": "Lantern Bard tax. Golden hour not included.",
+      "score": 95,
+      "tags": "ep-8,princes-dawn,lantern",
+      "computedScore": 98,
+      "formatted": {
+        "id": "td-019",
+        "title": "LED Lantern Prop (rechargeable, warm white)",
+        "price": "22.00",
+        "category": "tsundere-merch",
+        "lane": "melbourne",
+        "laneLabel": "Melbourne date-night",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-019?lane=melbourne",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "ep-8,princes-dawn,lantern",
+        "tweetHook": "Lantern Bard tax. Golden hour not included.",
+        "searchKeywords": "rechargeable led lantern warm white portable",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-010",
+      "title": "Anime Tsundere Enamel Pin Set",
+      "price": "11.99",
+      "category": "tsundere-merch",
+      "lanes": [
+        "otaku",
+        "creator"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "tsundere anime enamel pin set",
+      "tweetHook": "It's not a personality. It's a merchandising lane.",
+      "score": 93,
+      "tags": "lantern-bard,reel-a",
+      "computedScore": 96,
+      "formatted": {
+        "id": "td-010",
+        "title": "Anime Tsundere Enamel Pin Set",
+        "price": "11.99",
+        "category": "tsundere-merch",
+        "lane": "otaku",
+        "laneLabel": "Anime / tsundere merch",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-010?lane=otaku",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "lantern-bard,reel-a",
+        "tweetHook": "It's not a personality. It's a merchandising lane.",
+        "searchKeywords": "tsundere anime enamel pin set",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-016",
+      "title": "Chest Mount / Bag Clip for GoPro / Phone",
+      "price": "13.49",
+      "category": "creator-gear",
+      "lanes": [
+        "creator",
+        "melbourne"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "gopro chest mount phone clip action camera",
+      "tweetHook": "A8 sovereign tap — mount edition.",
+      "score": 91,
+      "tags": "reel-a,a8-hosier,gopro",
+      "computedScore": 95,
+      "formatted": {
+        "id": "td-016",
+        "title": "Chest Mount / Bag Clip for GoPro / Phone",
+        "price": "13.49",
+        "category": "creator-gear",
+        "lane": "creator",
+        "laneLabel": "Reels / TikTok creator",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-016?lane=creator",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-a,a8-hosier,gopro",
+        "tweetHook": "A8 sovereign tap — mount edition.",
+        "searchKeywords": "gopro chest mount phone clip action camera",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-005",
+      "title": "Korean Phrasebook for Travel Dates",
+      "price": "9.95",
+      "category": "k-culture",
+      "lanes": [
+        "korean",
+        "melbourne",
+        "hinge"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "korean phrase book travel beginner",
+      "tweetHook": "Practice shadowing before the café date. Not a rescue mission.",
+      "score": 91,
+      "tags": "ttmik,degraves,daily-life",
+      "computedScore": 94,
+      "formatted": {
+        "id": "td-005",
+        "title": "Korean Phrasebook for Travel Dates",
+        "price": "9.95",
+        "category": "k-culture",
+        "lane": "korean",
+        "laneLabel": "K-culture + TTMIK crossover",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-005?lane=korean",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "ttmik,degraves,daily-life",
+        "tweetHook": "Practice shadowing before the café date. Not a rescue mission.",
+        "searchKeywords": "korean phrase book travel beginner",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-006",
+      "title": "Privacy Screen Phone Filter (2-pack)",
+      "price": "8.49",
+      "category": "scam-awareness",
+      "lanes": [
+        "sovereign",
+        "bumble",
+        "tinder"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "privacy screen protector phone anti spy",
+      "tweetHook": "Helen-approved: strangers on the tram don't read your DMs.",
+      "score": 89,
+      "tags": "boundary,emergency-protocol",
+      "computedScore": 94,
+      "formatted": {
+        "id": "td-006",
+        "title": "Privacy Screen Phone Filter (2-pack)",
+        "price": "8.49",
+        "category": "scam-awareness",
+        "lane": "sovereign",
+        "laneLabel": "Helen boundary / scam recovery",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-006?lane=sovereign",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "boundary,emergency-protocol",
+        "tweetHook": "Helen-approved: strangers on the tram don't read your DMs.",
+        "searchKeywords": "privacy screen protector phone anti spy",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-020",
+      "title": "Magnetic Phone Tripod (mini, laneway-height)",
+      "price": "11.99",
+      "category": "creator-gear",
+      "lanes": [
+        "creator",
+        "melbourne",
+        "tinder"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "magnetic phone tripod mini magsafe",
+      "tweetHook": "W1 wide vertical: subject small, standards large.",
+      "score": 90,
+      "tags": "reel-b,w1-hosier,tiktok-15",
+      "computedScore": 94,
+      "formatted": {
+        "id": "td-020",
+        "title": "Magnetic Phone Tripod (mini, laneway-height)",
+        "price": "11.99",
+        "category": "creator-gear",
+        "lane": "creator",
+        "laneLabel": "Reels / TikTok creator",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-020?lane=creator",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-b,w1-hosier,tiktok-15",
+        "tweetHook": "W1 wide vertical: subject small, standards large.",
+        "searchKeywords": "magnetic phone tripod mini magsafe",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-024",
+      "title": "Anti-Phishing / Digital Safety Quick Card",
+      "price": "4.99",
+      "category": "scam-awareness",
+      "lanes": [
+        "tinder",
+        "sovereign"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "phishing awareness reference card wallet",
+      "tweetHook": "Invoice beat at Collins — know the pattern first.",
+      "score": 92,
+      "tags": "reel-a,a6-collins,scam",
+      "computedScore": 94,
+      "formatted": {
+        "id": "td-024",
+        "title": "Anti-Phishing / Digital Safety Quick Card",
+        "price": "4.99",
+        "category": "scam-awareness",
+        "lane": "tinder",
+        "laneLabel": "Tinder / scam PSA",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-024?lane=tinder",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-a,a6-collins,scam",
+        "tweetHook": "Invoice beat at Collins — know the pattern first.",
+        "searchKeywords": "phishing awareness reference card wallet",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-002",
+      "title": "Pocket Phone Gimbal Stabilizer",
+      "price": "29.99",
+      "category": "creator-gear",
+      "lanes": [
+        "creator",
+        "melbourne"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "pocket phone gimbal stabilizer 3 axis",
+      "tweetHook": "SYSTEM says shaky footage reads as scam. Rude but fair.",
+      "score": 92,
+      "tags": "reel-a,reel-b,centre-place",
+      "computedScore": 93,
+      "formatted": {
+        "id": "td-002",
+        "title": "Pocket Phone Gimbal Stabilizer",
+        "price": "29.99",
+        "category": "creator-gear",
+        "lane": "creator",
+        "laneLabel": "Reels / TikTok creator",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-002?lane=creator",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-a,reel-b,centre-place",
+        "tweetHook": "SYSTEM says shaky footage reads as scam. Rude but fair.",
+        "searchKeywords": "pocket phone gimbal stabilizer 3 axis",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-008",
+      "title": "Compact Café Date Card Game (2-player)",
+      "price": "16.00",
+      "category": "date-night",
+      "lanes": [
+        "hinge",
+        "bumble",
+        "melbourne"
+      ],
+      "skillId": "lo3tus",
+      "searchKeywords": "couples card game date night portable",
+      "tweetHook": "Degraves coffee + questions that aren't love bombs.",
+      "score": 90,
+      "tags": "degraves,social-cultural,main-others",
+      "computedScore": 93,
+      "formatted": {
+        "id": "td-008",
+        "title": "Compact Café Date Card Game (2-player)",
+        "price": "16.00",
+        "category": "date-night",
+        "lane": "hinge",
+        "laneLabel": "Hinge / IRL date prep",
+        "skillId": "lo3tus",
+        "url": "https://shop.example.com/tsundere-dating/td-008?lane=hinge",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "degraves,social-cultural,main-others",
+        "tweetHook": "Degraves coffee + questions that aren't love bombs.",
+        "searchKeywords": "couples card game date night portable",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-007",
+      "title": "Webcam Cover Slider (laptop + tablet)",
+      "price": "5.99",
+      "category": "scam-awareness",
+      "lanes": [
+        "sovereign",
+        "tinder"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "webcam cover slide laptop privacy",
+      "tweetHook": "Romance scam awareness includes your camera. Obviously.",
+      "score": 87,
+      "tags": "scam-psa,side-boundary",
+      "computedScore": 92,
+      "formatted": {
+        "id": "td-007",
+        "title": "Webcam Cover Slider (laptop + tablet)",
+        "price": "5.99",
+        "category": "scam-awareness",
+        "lane": "sovereign",
+        "laneLabel": "Helen boundary / scam recovery",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-007?lane=sovereign",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "scam-psa,side-boundary",
+        "tweetHook": "Romance scam awareness includes your camera. Obviously.",
+        "searchKeywords": "webcam cover slide laptop privacy",
+        "computedScore": 100
+      }
+    },
+    {
+      "id": "td-009",
+      "title": "Insulated Travel Tumbler (\"Content Dept\" edition)",
+      "price": "18.50",
+      "category": "date-night",
+      "lanes": [
+        "melbourne",
+        "creator",
+        "hinge"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "insulated coffee tumbler travel mug custom",
+      "tweetHook": "B5: GoPro on bag. Coffee in hand. Still not impressed.",
+      "score": 88,
+      "tags": "reel-b,b5-content-dept",
+      "computedScore": 91,
+      "formatted": {
+        "id": "td-009",
+        "title": "Insulated Travel Tumbler (\"Content Dept\" edition)",
+        "price": "18.50",
+        "category": "date-night",
+        "lane": "melbourne",
+        "laneLabel": "Melbourne date-night",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-009?lane=melbourne",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-b,b5-content-dept",
+        "tweetHook": "B5: GoPro on bag. Coffee in hand. Still not impressed.",
+        "searchKeywords": "insulated coffee tumbler travel mug custom",
+        "computedScore": 99
+      }
+    },
+    {
+      "id": "td-018",
+      "title": "Blocking & Boundaries Journal",
+      "price": "14.00",
+      "category": "sovereign-gear",
+      "lanes": [
+        "sovereign",
+        "bumble"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "boundaries journal self care dotted",
+      "tweetHook": "죄송하지만 지금은 어려워요 — in ink.",
+      "score": 88,
+      "tags": "helen,ep-4,side-boundary",
+      "computedScore": 91,
+      "formatted": {
+        "id": "td-018",
+        "title": "Blocking & Boundaries Journal",
+        "price": "14.00",
+        "category": "sovereign-gear",
+        "lane": "sovereign",
+        "laneLabel": "Helen boundary / scam recovery",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-018?lane=sovereign",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "helen,ep-4,side-boundary",
+        "tweetHook": "죄송하지만 지금은 어려워요 — in ink.",
+        "searchKeywords": "boundaries journal self care dotted",
+        "computedScore": 99
+      }
+    },
+    {
+      "id": "td-011",
+      "title": "Portable Power Bank 10000mAh (slim)",
+      "price": "19.99",
+      "category": "creator-gear",
+      "lanes": [
+        "creator",
+        "melbourne",
+        "tinder"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "slim power bank 10000mah portable charger",
+      "tweetHook": "4G > fate. Battery > feelings.",
+      "score": 86,
+      "tags": "reel-b,b6-centre,tech",
+      "computedScore": 90,
+      "formatted": {
+        "id": "td-011",
+        "title": "Portable Power Bank 10000mAh (slim)",
+        "price": "19.99",
+        "category": "creator-gear",
+        "lane": "creator",
+        "laneLabel": "Reels / TikTok creator",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-011?lane=creator",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-b,b6-centre,tech",
+        "tweetHook": "4G > fate. Battery > feelings.",
+        "searchKeywords": "slim power bank 10000mah portable charger",
+        "computedScore": 98
+      }
+    },
+    {
+      "id": "td-012",
+      "title": "Noise-Cancelling Earbuds (budget ANC)",
+      "price": "24.99",
+      "category": "sovereign-gear",
+      "lanes": [
+        "sovereign",
+        "bumble",
+        "korean"
+      ],
+      "skillId": "helen-neighbor",
+      "searchKeywords": "noise cancelling earbuds budget anc",
+      "tweetHook": "Mute SYSTEM notifications. Keep Korean audio.",
+      "score": 85,
+      "tags": "shadowing,helen,side-boundary",
+      "computedScore": 88,
+      "formatted": {
+        "id": "td-012",
+        "title": "Noise-Cancelling Earbuds (budget ANC)",
+        "price": "24.99",
+        "category": "sovereign-gear",
+        "lane": "sovereign",
+        "laneLabel": "Helen boundary / scam recovery",
+        "skillId": "helen-neighbor",
+        "url": "https://shop.example.com/tsundere-dating/td-012?lane=sovereign",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "shadowing,helen,side-boundary",
+        "tweetHook": "Mute SYSTEM notifications. Keep Korean audio.",
+        "searchKeywords": "noise cancelling earbuds budget anc",
+        "computedScore": 96
+      }
+    },
+    {
+      "id": "td-022",
+      "title": "SD Card 128GB + USB-C Reader Kit",
+      "price": "17.99",
+      "category": "creator-gear",
+      "lanes": [
+        "creator",
+        "melbourne"
+      ],
+      "skillId": "flame-kissed-bard",
+      "searchKeywords": "128gb sd card usb c reader kit",
+      "tweetHook": "10:15 wrap — offload before feelings.",
+      "score": 84,
+      "tags": "jun-19-block,wrap,main-film",
+      "computedScore": 88,
+      "formatted": {
+        "id": "td-022",
+        "title": "SD Card 128GB + USB-C Reader Kit",
+        "price": "17.99",
+        "category": "creator-gear",
+        "lane": "creator",
+        "laneLabel": "Reels / TikTok creator",
+        "skillId": "flame-kissed-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-022?lane=creator",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "jun-19-block,wrap,main-film",
+        "tweetHook": "10:15 wrap — offload before feelings.",
+        "searchKeywords": "128gb sd card usb c reader kit",
+        "computedScore": 96
+      }
+    },
+    {
+      "id": "td-013",
+      "title": "Foldable Picnic Blanket (water-resistant)",
+      "price": "15.99",
+      "category": "date-night",
+      "lanes": [
+        "melbourne",
+        "hinge"
+      ],
+      "skillId": "asuka-brisbane",
+      "searchKeywords": "foldable picnic blanket waterproof compact",
+      "tweetHook": "Fed Square rain glass optional. Blanket mandatory.",
+      "score": 84,
+      "tags": "fed-square,southbank,date-night",
+      "computedScore": 87,
+      "formatted": {
+        "id": "td-013",
+        "title": "Foldable Picnic Blanket (water-resistant)",
+        "price": "15.99",
+        "category": "date-night",
+        "lane": "melbourne",
+        "laneLabel": "Melbourne date-night",
+        "skillId": "asuka-brisbane",
+        "url": "https://shop.example.com/tsundere-dating/td-013?lane=melbourne",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "fed-square,southbank,date-night",
+        "tweetHook": "Fed Square rain glass optional. Blanket mandatory.",
+        "searchKeywords": "foldable picnic blanket waterproof compact",
+        "computedScore": 95
+      }
+    },
+    {
+      "id": "td-017",
+      "title": "\"Melbourne Arrival\" Postcard Set (12)",
+      "price": "8.99",
+      "category": "date-night",
+      "lanes": [
+        "melbourne",
+        "korean",
+        "hinge"
+      ],
+      "skillId": "melbourne-lantern-bard",
+      "searchKeywords": "melbourne australia postcard set laneway",
+      "tweetHook": "Send one. Pretend you didn't care which you picked.",
+      "score": 83,
+      "tags": "melbourne-arrival,ep-2",
+      "computedScore": 86,
+      "formatted": {
+        "id": "td-017",
+        "title": "\"Melbourne Arrival\" Postcard Set (12)",
+        "price": "8.99",
+        "category": "date-night",
+        "lane": "melbourne",
+        "laneLabel": "Melbourne date-night",
+        "skillId": "melbourne-lantern-bard",
+        "url": "https://shop.example.com/tsundere-dating/td-017?lane=melbourne",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "melbourne-arrival,ep-2",
+        "tweetHook": "Send one. Pretend you didn't care which you picked.",
+        "searchKeywords": "melbourne australia postcard set laneway",
+        "computedScore": 94
+      }
+    },
+    {
+      "id": "td-015",
+      "title": "Cute Stationery Set (love-bomb parody notes)",
+      "price": "10.99",
+      "category": "tsundere-merch",
+      "lanes": [
+        "otaku",
+        "korean",
+        "hinge"
+      ],
+      "skillId": "lo3tus",
+      "searchKeywords": "kawaii stationery set gel pen sticky notes",
+      "tweetHook": "Write the tsundere reply. Mail it never.",
+      "score": 82,
+      "tags": "ep-3,love-bomb,chaotic-neutral",
+      "computedScore": 85,
+      "formatted": {
+        "id": "td-015",
+        "title": "Cute Stationery Set (love-bomb parody notes)",
+        "price": "10.99",
+        "category": "tsundere-merch",
+        "lane": "otaku",
+        "laneLabel": "Anime / tsundere merch",
+        "skillId": "lo3tus",
+        "url": "https://shop.example.com/tsundere-dating/td-015?lane=otaku",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "ep-3,love-bomb,chaotic-neutral",
+        "tweetHook": "Write the tsundere reply. Mail it never.",
+        "searchKeywords": "kawaii stationery set gel pen sticky notes",
+        "computedScore": 93
+      }
+    },
+    {
+      "id": "td-021",
+      "title": "Funny Dating App Survival Mug",
+      "price": "12.99",
+      "category": "tsundere-merch",
+      "lanes": [
+        "tinder",
+        "hinge",
+        "otaku"
+      ],
+      "skillId": "lo3tus",
+      "searchKeywords": "funny dating mug single coffee cup",
+      "tweetHook": "It's not you. It's my content department.",
+      "score": 81,
+      "tags": "lo3tus,daily-life",
+      "computedScore": 84,
+      "formatted": {
+        "id": "td-021",
+        "title": "Funny Dating App Survival Mug",
+        "price": "12.99",
+        "category": "tsundere-merch",
+        "lane": "tinder",
+        "laneLabel": "Tinder / scam PSA",
+        "skillId": "lo3tus",
+        "url": "https://shop.example.com/tsundere-dating/td-021?lane=tinder",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "lo3tus,daily-life",
+        "tweetHook": "It's not you. It's my content department.",
+        "searchKeywords": "funny dating mug single coffee cup",
+        "computedScore": 92
+      }
+    },
+    {
+      "id": "td-023",
+      "title": "K-Beauty Lip Tint Set (date-night subtle)",
+      "price": "13.50",
+      "category": "date-night",
+      "lanes": [
+        "korean",
+        "hinge",
+        "bumble"
+      ],
+      "skillId": "lo3tus",
+      "searchKeywords": "korean lip tint set gradient",
+      "tweetHook": "Tsundere lip sync: fine face, complicated interior.",
+      "score": 80,
+      "tags": "reel-b,b8-fine-face",
+      "computedScore": 83,
+      "formatted": {
+        "id": "td-023",
+        "title": "K-Beauty Lip Tint Set (date-night subtle)",
+        "price": "13.50",
+        "category": "date-night",
+        "lane": "korean",
+        "laneLabel": "K-culture + TTMIK crossover",
+        "skillId": "lo3tus",
+        "url": "https://shop.example.com/tsundere-dating/td-023?lane=korean",
+        "image": null,
+        "store": "Tsundere Dating Catalog",
+        "tags": "reel-b,b8-fine-face",
+        "tweetHook": "Tsundere lip sync: fine face, complicated interior.",
+        "searchKeywords": "korean lip tint set gradient",
+        "computedScore": 91
+      }
+    }
+  ]
+}

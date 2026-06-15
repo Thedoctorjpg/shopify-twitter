@@ -11,7 +11,8 @@
     "test": "echo \"No tests yet\" && exit 0",
     "frontend": "cd frontend && npm run dev",
     "build:frontend": "cd frontend && npm run build",
-    "build": "npm run build:frontend && echo 'Frontend built. Backend is ready (Docker will handle full build).'"
+    "build": "npm run build:frontend && echo 'Frontend built. Backend is ready (Docker will handle full build).'",
+    "build:tsundere-catalog": "node scripts/build-tsundere-catalog.js"
   },
   "keywords": [
     "shopify",
