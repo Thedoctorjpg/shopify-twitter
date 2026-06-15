@@ -18,7 +18,8 @@ export const DATING_SITE_LANES = {
   melbourne: { label: 'Melbourne date-night', tone: 'laneway-pilgrim', cta: 'hosier-golden-hour' },
   creator: { label: 'Reels / TikTok creator', tone: 'gopro-feral', cta: 'content-dept-approved' },
   korean: { label: 'K-culture + TTMIK crossover', tone: 'study-date', cta: 'shadowing-on-the-tram' },
-  sovereign: { label: 'Helen boundary / scam recovery', tone: 'cord-cutting', cta: 'block-not-negotiate' }
+  sovereign: { label: 'Helen boundary / scam recovery', tone: 'cord-cutting', cta: 'block-not-negotiate' },
+  'tarot-scam': { label: 'Tarot-predicted scam PSA', tone: 'sovereign-deadpan', cta: 'dont-fund-predictions' }
 };
 
 /**
@@ -313,6 +314,30 @@ export const OPTIMAL_TSUNDERE_DATING_ITEMS = [
     tweetHook: 'Invoice beat at Collins — know the pattern first.',
     score: 92,
     tags: 'reel-a,a6-collins,scam'
+  },
+  {
+    id: 'td-025',
+    title: 'Tarot Scam Awareness Card (wallet size)',
+    price: '4.50',
+    category: 'scam-awareness',
+    lanes: ['tarot-scam', 'sovereign', 'tinder'],
+    skillId: 'helen-neighbor',
+    searchKeywords: 'psychic scam awareness card wallet guide',
+    tweetHook: 'The cards didn\'t show your bank details. Block.',
+    score: 96,
+    tags: 'tarot-scam,helen,side-tarot-scam'
+  },
+  {
+    id: 'td-026',
+    title: 'Boundaries Journal — "I don\'t fund predictions"',
+    price: '14.00',
+    category: 'sovereign-gear',
+    lanes: ['tarot-scam', 'sovereign', 'bumble'],
+    skillId: 'helen-neighbor',
+    searchKeywords: 'boundaries journal dotted notebook self care',
+    tweetHook: '4G > fate. Ink > invoice.',
+    score: 90,
+    tags: 'tarot-scam,ep-4,side-boundary'
   }
 ];
 

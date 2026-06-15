@@ -522,6 +522,7 @@ function App() {
               <option value="creator">Reels / Creator gear</option>
               <option value="korean">K-culture + TTMIK</option>
               <option value="sovereign">Helen / Scam recovery</option>
+              <option value="tarot-scam">Tarot-predicted scam PSA</option>
             </select>
             <input
               placeholder="Search catalog (scam, gopro, sticker...)"
