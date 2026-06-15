@@ -824,11 +824,14 @@ const frontendPath = join(__dirname, '../frontend/dist');
 
 if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
-  // SPA fallback for client-side routes (current app is mostly single-page)
-  app.get('*', (req, res) => {
-    // Defensive: if somehow an API path reaches here
-    const apiPaths = ['/products', '/orders', '/ebay', '/aliexpress', '/generate', '/edit', '/import', '/tweet', '/cron', '/webhooks', '/health', '/promote', '/twitter'];
-    if (apiPaths.some(p => req.path.startsWith(p))) {
+  // SPA fallback — Express 5 requires named wildcard, not bare '*'
+  const spaApiPrefixes = [
+    '/products', '/orders', '/ebay', '/aliexpress', '/grocery', '/tsundere-dating',
+    '/generate', '/edit', '/import', '/tweet', '/cron', '/webhooks', '/health',
+    '/promote', '/twitter', '/dashboard'
+  ];
+  app.get('/{*path}', (req, res) => {
+    if (spaApiPrefixes.some(p => req.path.startsWith(p))) {
       return res.status(404).json({ error: 'API route not found' });
     }
     res.sendFile(join(frontendPath, 'index.html'));
