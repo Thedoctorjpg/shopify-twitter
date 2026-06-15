@@ -316,7 +316,7 @@ export const OPTIMAL_TSUNDERE_DATING_ITEMS = [
   }
 ];
 
-const ALL_NICHES = [...new Set(OPTIMAL_TSUNDERE_DATING_ITEMS.flatMap(i => i.lanes))];
+export const ALL_NICHES = [...new Set(OPTIMAL_TSUNDERE_DATING_ITEMS.flatMap(i => i.lanes))];
 
 /**
  * Score an item for tsundere/dating-site fit (higher = better).
